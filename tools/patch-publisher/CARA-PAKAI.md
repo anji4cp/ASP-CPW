@@ -1,5 +1,7 @@
 # Cara memakai ASP CPW One-Click Publisher
 
+**Bahasa Indonesia** | [English](USAGE.md)
+
 Paket ini digunakan setelah **ASP CPW Manager** sudah terpasang pada Ubuntu. Tidak ada password yang disimpan.
 
 ## Langkah singkat

@@ -1,5 +1,7 @@
 # Menyiapkan launcher client
 
+**Bahasa Indonesia** | [English](CLIENT-SETUP.en.md)
+
 Gunakan salinan client khusus pengujian. Jangan langsung mengubah client utama pemain.
 
 ## Alamat patch

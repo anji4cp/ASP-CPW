@@ -1,5 +1,7 @@
 # Troubleshooting
 
+**Bahasa Indonesia** | [English](TROUBLESHOOTING.en.md)
+
 ## Panel menampilkan Not available
 
 ```bash

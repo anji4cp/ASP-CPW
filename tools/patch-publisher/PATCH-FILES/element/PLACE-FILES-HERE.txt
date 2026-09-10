@@ -2,3 +2,6 @@ Put files from the client element folder here while preserving their paths.
 Example: data/elements.data
 This instruction file is ignored by the publisher.
 
+Letakkan file dari folder element client di sini dengan mempertahankan jalurnya.
+Contoh: data/elements.data
+File petunjuk ini diabaikan oleh publisher.

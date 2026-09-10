@@ -1,5 +1,7 @@
 # Tutorial instalasi Ubuntu Server dan ASP CPW Manager
 
+**Bahasa Indonesia** | [English](INSTALL-UBUNTU.en.md)
+
 Panduan ini ditulis untuk pengguna yang belum pernah memasang server Ubuntu. Untuk server PW yang
 sudah berjalan, langsung mulai dari bagian **Memasang ASP CPW Manager**.
 

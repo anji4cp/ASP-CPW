@@ -1,5 +1,7 @@
 # Operasi harian ASP CPW Manager
 
+**Bahasa Indonesia** | [English](OPERATIONS.en.md)
+
 ## Struktur staging
 
 Letakkan hanya file baru atau file yang berubah. Jalur di dalam staging harus sama dengan jalur client.

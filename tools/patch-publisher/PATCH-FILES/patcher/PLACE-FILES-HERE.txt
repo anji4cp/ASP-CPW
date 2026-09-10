@@ -1,3 +1,5 @@
 Put patcher-channel files here while preserving their paths.
 This instruction file is ignored by the publisher.
 
+Letakkan file channel patcher di sini dengan mempertahankan jalurnya.
+File petunjuk ini diabaikan oleh publisher.

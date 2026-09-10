@@ -1,5 +1,7 @@
 # ASP CPW Manager
 
+**English** | [Bahasa Indonesia](README.id.md)
+
 Lightweight Perfect World client patch management for the PWKU server. It wraps the MIT-licensed
 [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine with safer release staging, integrity checks,
 atomic publication, rollback, a systemd worker, and integration for the existing PW155 web panel.
@@ -20,11 +22,11 @@ atomic publication, rollback, a systemd worker, and integration for the existing
 
 ## Quick start
 
-1. Read [Ubuntu installation](docs/INSTALL-UBUNTU.md).
+1. Read [Ubuntu installation](docs/INSTALL-UBUNTU.en.md).
 2. On Windows, double-click `INSTALL-ASP-CPW.cmd`.
 3. Securely back up `/opt/asp-cpw/config/keys.json` after installation.
-4. Configure a **test copy** of the client using [Client setup](docs/CLIENT-SETUP.md).
-5. Publish a small test file using [Operations](docs/OPERATIONS.md).
+4. Configure a **test copy** of the client using [Client setup](docs/CLIENT-SETUP.en.md).
+5. Publish a small test file using [Operations](docs/OPERATIONS.en.md).
 
 ## Repository layout
 
@@ -46,7 +48,7 @@ database credentials, passwords, generated releases, or client backups.
 Prepare a test client by opening `tools/client-setup/PREPARE-ASP-CLIENT.cmd`. The tool asks for the
 full client folder and stores backups below its own ignored `backups/` directory.
 
-Create a patch by reading `tools/patch-publisher/CARA-PAKAI.md`, putting only changed client files
+Create a patch by reading `tools/patch-publisher/USAGE.md`, putting only changed client files
 below `PATCH-FILES`, previewing them, and then running `PUBLISH-PATCH.cmd`. Patch payloads are ignored
 by Git so copyrighted game files cannot be committed accidentally.
 

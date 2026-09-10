@@ -1,5 +1,7 @@
 # ASP Perfect World Client Preparation
 
+**Bahasa Indonesia** | [English](README.en.md)
+
 Tool ini menyiapkan base client agar mempercayai ASP CPW Manager yang sudah terpasang di Ubuntu.
 
 ## Yang dikerjakan

@@ -1,5 +1,7 @@
 # Rollback dan pemulihan
 
+**Bahasa Indonesia** | [English](ROLLBACK.en.md)
+
 ## Publication rollback
 
 Lihat nama release:
@@ -32,4 +34,3 @@ Sebelum restore penuh:
 4. Restore database secara manual sebagai administrator, salin output kerja, jalankan `cpw listgen`, lalu verify.
 
 Jika ragu, gunakan publication rollback saja dan simpan seluruh log untuk diagnosis.
-

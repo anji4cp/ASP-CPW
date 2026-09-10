@@ -1,0 +1,4 @@
+publisher-settings.json
+*.tar.gz
+*.log
+PUBLISHED/

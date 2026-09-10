@@ -1,0 +1,55 @@
+# Secrets and machine-specific configuration
+config/patcher.conf
+config/keys.json
+config/db.cnf
+*.env
+!.env.example
+**/keys.json
+**/known_hosts
+**/*.pem
+**/*.key
+**/publisher-settings.json
+
+# Runtime data and generated patch artifacts
+files/
+staging/
+releases/
+backups/
+logs/
+state/
+*.log
+*.tmp
+__pycache__/
+*.py[cod]
+**/backups/
+**/PUBLISHED/
+*.zip
+*.tar.gz
+
+# Never publish proprietary client/server payloads
+*.data
+*.pck
+*.sev
+*.sw
+Launcher.exe
+patcher.exe
+elementclient.exe
+
+# Keep the empty publisher layout, ignore files placed there by users
+tools/patch-publisher/PATCH-FILES/element/**
+tools/patch-publisher/PATCH-FILES/launcher/**
+tools/patch-publisher/PATCH-FILES/patcher/**
+!tools/patch-publisher/PATCH-FILES/element/PLACE-FILES-HERE.txt
+!tools/patch-publisher/PATCH-FILES/launcher/PLACE-FILES-HERE.txt
+!tools/patch-publisher/PATCH-FILES/patcher/PLACE-FILES-HERE.txt
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Dart build cache in vendored source
+vendor/cpw_pw/.dart_tool/
+vendor/cpw_pw/build/
+vendor/cpw_pw/.packages

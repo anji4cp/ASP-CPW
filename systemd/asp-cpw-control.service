@@ -1,0 +1,16 @@
+[Unit]
+Description=ASP CPW queued patch operation
+After=mariadb.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/asp-cpw/asp-cpw.env
+ExecStart=/usr/bin/python3 /opt/asp-cpw/scripts/asp_cpw_worker.py
+User=root
+Group=root
+PrivateTmp=true
+NoNewPrivileges=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/asp-cpw/log /srv/asp-cpw /var/lib/asp-cpw-control
+

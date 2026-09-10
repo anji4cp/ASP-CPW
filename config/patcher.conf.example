@@ -1,0 +1,21 @@
+# ASP CPW Manager - CPW engine configuration
+# IMPORTANT: use a dedicated database. Never set db-name=pw.
+db-host=127.0.0.1
+db-port=3306
+db-name=cpw_patch
+db-user=asp_cpw
+db-password=CHANGE_ME
+
+# Relative to /opt/asp-cpw. The installer makes files a symlink to /srv/asp-cpw/work.
+patch-path=files
+patch-new-dir=new
+patch-cpw-dir=CPW
+
+min-launcher-ver=1
+min-patcher-ver=1
+min-element-ver=1
+
+# Keep staged source files. The manager archives them only after a successful publish.
+remove-input-files=false
+add-file-size-to-inc=true
+

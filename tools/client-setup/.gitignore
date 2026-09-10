@@ -1,0 +1,4 @@
+known_hosts
+work/
+backups/
+*.log

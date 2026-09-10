@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ ${EUID} -ne 0 ]]; then
+  echo "Run with sudo: sudo asp-cpw-control <status|preview|publish|verify|rollback>" >&2
+  exit 1
+fi
+
+set -a
+[[ -f /etc/asp-cpw/asp-cpw.env ]] && source /etc/asp-cpw/asp-cpw.env
+set +a
+exec /usr/bin/python3 /opt/asp-cpw/scripts/asp_cpw_manager.py "$@"

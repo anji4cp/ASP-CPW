@@ -1,0 +1,107 @@
+import 'dart:io';
+import 'package:path/path.dart' as path;
+import 'package:cpw_pw/config/patcher_config.dart';
+import 'package:cpw_pw/config/config_parser.dart';
+
+/// Configuration loader with support for:
+/// 1. Reading from the .conf file
+/// 2. Overriding via environment variables (Docker)
+/// 3. Validating types and required fields
+final class ConfigLoader {
+  /// Loads and validates the configuration.
+  /// [configPath] - path to the file (default: "config/patcher.conf" from CWD)
+  static Future<PatcherConfig> load({String? configPath}) async {
+    final baseDir = _getProjectRoot();
+    final currentPath = configPath ?? path.join(baseDir, 'config', 'patcher.conf');
+    final raw = await ConfigParser.parseFile(currentPath);
+
+    _applyEnvOverrides(raw);
+
+    return _buildAndValidate(raw, baseDir);
+  }
+
+  /// Applies environment variables over values from a file.
+  /// Format: CPW_(KEY_UPPER_SNAKE)
+  static void _applyEnvOverrides(Map<String, String> config) {
+    const envMap = {
+      'DB_HOST': 'db-host',
+      'DB_PORT': 'db-port',
+      'DB_NAME': 'db-name',
+      'DB_USER': 'db-user',
+      'DB_PASSWORD': 'db-password',
+      'CPW_PATCH_PATH': 'patch-path',
+    };
+
+    for (final envVar in envMap.entries) {
+      final envVal = Platform.environment[envVar.key];
+      final trimmedEnvVal = envVal?.trim();
+      if (trimmedEnvVal != null && trimmedEnvVal.isNotEmpty) {
+        config[envVar.value] = trimmedEnvVal;
+      }
+    }
+  }
+
+  /// Builds a typed config with validation.
+  static PatcherConfig _buildAndValidate(Map<String, String> raw, String baseDir) {
+    T get<T>(
+        String key, {
+          required T Function(String) parse,
+          T? defaultValue,
+        }) {
+      final val = raw[key]?.trim();
+      if (val == null || val.isEmpty) {
+        if (defaultValue != null) return defaultValue;
+        throw StateError('Missing required config key: "$key"');
+      }
+      try {
+        return parse(val);
+      } catch (e) {
+        throw FormatException('Invalid config value for "$key": "$val". Error: $e');
+      }
+    }
+
+    // Parsing Boolean flags: true/false/yes/no/1/0
+    bool parseBool(String s) => switch (s.toLowerCase()) {
+      'true' || 'yes' || '1' => true,
+      'false' || 'no' || '0' => false,
+      _ => throw FormatException('Expected boolean, got "$s"'),
+    };
+
+    return PatcherConfig(
+      baseDir: baseDir,
+
+      // DB
+      dbHost: get('db-host', parse: (s) => s, defaultValue: 'localhost'),
+      dbPort: get('db-port', parse: int.parse, defaultValue: 3306),
+      dbUser: get('db-user', parse: (s) => s),
+      dbPassword: get('db-password', parse: (s) => s),
+      dbName: get('db-name', parse: (s) => s),
+
+      // Paths
+      patchPath: get('patch-path', parse: (s) => s, defaultValue: 'files'),
+      patchNewDir: get('patch-new-dir', parse: (s) => s, defaultValue: 'new'),
+      patchCpwDir: get('patch-cpw-dir', parse: (s) => s, defaultValue: 'CPW'),
+
+      // Versions
+      minLauncherVer: get('min-launcher-ver', parse: int.parse, defaultValue: 1),
+      minPatcherVer: get('min-patcher-ver', parse: int.parse, defaultValue: 1),
+      minElementVer: get('min-element-ver', parse: int.parse, defaultValue: 1),
+
+      // Flags
+      removeFiles: get('remove-input-files', parse: parseBool, defaultValue: true),
+      addSize: get('add-file-size-to-inc', parse: parseBool, defaultValue: true),
+    );
+  }
+
+  /// Defines the root directory of the project.
+  /// Returns the current directory during development (Dart Run)
+  /// or the directory containing the binary when running the compiled file.
+  static String _getProjectRoot() {
+    final exePath = Platform.resolvedExecutable;
+    final exeName = path.basenameWithoutExtension(exePath).toLowerCase();
+
+    return exeName == 'dart' || exeName == 'dart.exe'
+        ? Directory.current.path
+        : path.dirname(exePath);
+  }
+}

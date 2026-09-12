@@ -1,5 +1,8 @@
 param(
-  [switch]$PreviewOnly
+  [switch]$PreviewOnly,
+  [string]$Server = "",
+  [string]$Port = "",
+  [string]$User = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -57,9 +60,9 @@ if ($answer -cne "PUBLISH") {
   exit 3
 }
 
-$Server = Read-Default "Ubuntu address" "127.0.0.1"
-$PortText = Read-Default "SSH port" "2223"
-$User = Read-Default "SSH username (not password)" "pwadmin"
+$Server = if ([string]::IsNullOrWhiteSpace($Server)) { Read-Default "Ubuntu address" "127.0.0.1" } else { $Server.Trim() }
+$PortText = if ([string]::IsNullOrWhiteSpace($Port)) { Read-Default "SSH port" "2223" } else { $Port.Trim() }
+$User = if ([string]::IsNullOrWhiteSpace($User)) { Read-Default "SSH username (not password)" "pwadmin" } else { $User.Trim() }
 if ($PortText -notmatch '^[0-9]{1,5}$' -or [int]$PortText -lt 1 -or [int]$PortText -gt 65535) {
   throw "Invalid SSH port."
 }

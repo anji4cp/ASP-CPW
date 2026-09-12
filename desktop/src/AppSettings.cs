@@ -12,6 +12,8 @@ namespace AspCpwDesktop
         public string Port = "2223";
         public string User = "pwadmin";
         public string PatchUrl = "http://127.0.0.1:8081/patch/";
+        public string GameAddress = "127.0.0.1";
+        public string GamePort = "29001";
         public bool ServerInstalled;
         public bool ClientPrepared;
 
@@ -45,6 +47,8 @@ namespace AspCpwDesktop
                 if (entries.TryGetValue("Port", out item)) value.Port = item;
                 if (entries.TryGetValue("User", out item)) value.User = item;
                 if (entries.TryGetValue("PatchUrl", out item)) value.PatchUrl = item;
+                if (entries.TryGetValue("GameAddress", out item)) value.GameAddress = item;
+                if (entries.TryGetValue("GamePort", out item)) value.GamePort = item;
                 if (entries.TryGetValue("ServerInstalled", out item)) value.ServerInstalled = item == "1";
                 if (entries.TryGetValue("ClientPrepared", out item)) value.ClientPrepared = item == "1";
             }
@@ -61,6 +65,8 @@ namespace AspCpwDesktop
                 "Port=" + Encode(Port),
                 "User=" + Encode(User),
                 "PatchUrl=" + Encode(PatchUrl),
+                "GameAddress=" + Encode(GameAddress),
+                "GamePort=" + Encode(GamePort),
                 "ServerInstalled=" + Encode(ServerInstalled ? "1" : "0"),
                 "ClientPrepared=" + Encode(ClientPrepared ? "1" : "0")
             };

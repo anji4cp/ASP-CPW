@@ -5,6 +5,10 @@
 Aplikasi Windows ringan yang menyatukan instalasi server CPW, persiapan client, pengambilan file update,
 preview, publish, verifikasi, dan panduan staging. Aplikasi tidak menyimpan password atau menyertakan data game.
 
+Nilai **Ubuntu address**, **SSH port**, **SSH username**, **Public patch URL**, **Game address**, dan **Game port**
+diambil otomatis dari tab Settings. Console hanya meminta konfirmasi tindakan dan password. Bila pengaturan
+koneksi kosong atau tidak valid, operasi diblokir dan pengguna diarahkan kembali ke Settings.
+
 ## Membuka aplikasi
 
 Klik dua kali `ASP-CPW-DESKTOP.cmd` di root repository. Launcher tersebut membangun executable secara otomatis

@@ -45,7 +45,10 @@ namespace AspCpwDesktop
         private TextBox portBox;
         private TextBox userBox;
         private TextBox urlBox;
+        private TextBox gameAddressBox;
+        private TextBox gamePortBox;
         private ListBox activityLog;
+        private TabControl mainTabs;
 
         public MainForm()
         {
@@ -58,7 +61,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.2.1";
+            Text = "ASP CPW Desktop Manager 0.3.0";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -85,14 +88,14 @@ namespace AspCpwDesktop
             header.Controls.Add(title); header.Controls.Add(subtitle);
             Controls.Add(header);
 
-            TabControl tabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(18, 7) };
-            tabs.TabPages.Add(BuildDashboardTab());
-            tabs.TabPages.Add(BuildUpdateTab());
-            tabs.TabPages.Add(BuildPublishTab());
-            tabs.TabPages.Add(BuildSettingsTab());
-            tabs.TabPages.Add(BuildHelpTab());
-            Controls.Add(tabs);
-            tabs.BringToFront();
+            mainTabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(18, 7) };
+            mainTabs.TabPages.Add(BuildDashboardTab());
+            mainTabs.TabPages.Add(BuildUpdateTab());
+            mainTabs.TabPages.Add(BuildPublishTab());
+            mainTabs.TabPages.Add(BuildSettingsTab());
+            mainTabs.TabPages.Add(BuildHelpTab());
+            Controls.Add(mainTabs);
+            mainTabs.BringToFront();
         }
 
         private TabPage NewTab(string name)
@@ -111,7 +114,7 @@ namespace AspCpwDesktop
             installCard.Controls.Add(TextLabel("1. Install ASP CPW on Ubuntu", 18, 51, 260));
             installCard.Controls.Add(TextLabel("Run once, or after updating this repository.", 18, 76, 440, Color.DimGray));
             Button install = ActionButton("Install / Update Server", 18, 107, 210, Blue);
-            install.Click += delegate { RunManagedScript(Path.Combine(repoRoot, "INSTALL-ASP-CPW.cmd"), "Server installation", true); };
+            install.Click += delegate { StartServerInstallation(); };
             installCard.Controls.Add(install);
             installStatus = StatusLabel(248, 117);
             installCard.Controls.Add(installStatus);
@@ -122,7 +125,7 @@ namespace AspCpwDesktop
             prepareCard.Controls.Add(TextLabel("2. Prepare Launcher and Client", 18, 51, 300));
             prepareCard.Controls.Add(TextLabel("Repeat only for a new client, URL, executable, or RSA key.", 18, 76, 450, Color.DimGray));
             Button prepare = ActionButton("Prepare Client", 18, 107, 210, Blue);
-            prepare.Click += delegate { RunManagedScript(Path.Combine(repoRoot, "tools", "client-setup", "PREPARE-ASP-CLIENT.cmd"), "Client preparation", false); };
+            prepare.Click += delegate { StartClientPreparation(); };
             prepareCard.Controls.Add(prepare);
             prepareStatus = StatusLabel(248, 117);
             prepareCard.Controls.Add(prepareStatus);
@@ -230,6 +233,8 @@ namespace AspCpwDesktop
             portBox = SettingsField(page, "SSH port", settings.Port, y); y += 52;
             userBox = SettingsField(page, "SSH username", settings.User, y); y += 52;
             urlBox = SettingsField(page, "Public patch URL", settings.PatchUrl, y); y += 65;
+            gameAddressBox = SettingsField(page, "Game address", settings.GameAddress, y); y += 52;
+            gamePortBox = SettingsField(page, "Game port", settings.GamePort, y); y += 65;
             Button save = ActionButton("Save Settings", 194, y, 170, Green);
             save.Click += SaveSettings;
             Button test = ActionButton("Test SSH / Status", 380, y, 190, Blue);
@@ -268,6 +273,8 @@ namespace AspCpwDesktop
             portBox.Text = settings.Port;
             userBox.Text = settings.User;
             urlBox.Text = settings.PatchUrl;
+            gameAddressBox.Text = settings.GameAddress;
+            gamePortBox.Text = settings.GamePort;
         }
 
         private void RefreshDashboard()
@@ -441,7 +448,7 @@ namespace AspCpwDesktop
                 "Publish exactly the files shown in Preview?\r\n\r\nThe console will ask for the Ubuntu password. Do not publish the same revision twice.",
                 "Confirm publication", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2);
             if (answer != DialogResult.Yes) return;
-            RunManagedScript(Path.Combine(publisherRoot, "PUBLISH-PATCH.cmd"), "Patch publication", false);
+            StartPatchPublication();
         }
 
         private void PublishExistingStaging(object sender, EventArgs e)
@@ -453,7 +460,34 @@ namespace AspCpwDesktop
             RunServerCommand("sudo asp-cpw-control publish --actor pwadmin", "Existing staging publication");
         }
 
-        private void RunManagedScript(string script, string description, bool marksServerInstalled)
+        private void StartServerInstallation()
+        {
+            if (!RequireConnectionSettings()) return;
+            string script = Path.Combine(repoRoot, "installer", "install-from-windows.ps1");
+            string arguments = "-Server " + Quote(settings.Server) + " -Port " + Quote(settings.Port) + " -User " + Quote(settings.User);
+            RunPowerShellScript(script, arguments, "Server installation", true);
+        }
+
+        private void StartClientPreparation()
+        {
+            if (!EnsureClientSelected() || !RequireConnectionSettings()) return;
+            string script = Path.Combine(repoRoot, "tools", "client-setup", "prepare-client.ps1");
+            string arguments = "-ClientPath " + Quote(settings.ClientPath) +
+                " -Server " + Quote(settings.Server) + " -Port " + Quote(settings.Port) +
+                " -User " + Quote(settings.User) + " -PatchUrl " + Quote(settings.PatchUrl) +
+                " -GameAddress " + Quote(settings.GameAddress) + " -GamePort " + Quote(settings.GamePort);
+            RunPowerShellScript(script, arguments, "Client preparation", false);
+        }
+
+        private void StartPatchPublication()
+        {
+            if (!RequireConnectionSettings()) return;
+            string script = Path.Combine(publisherRoot, "publisher", "publish-patch.ps1");
+            string arguments = "-Server " + Quote(settings.Server) + " -Port " + Quote(settings.Port) + " -User " + Quote(settings.User);
+            RunPowerShellScript(script, arguments, "Patch publication", false);
+        }
+
+        private void RunPowerShellScript(string script, string arguments, string description, bool marksServerInstalled)
         {
             if (!File.Exists(script))
             {
@@ -461,10 +495,16 @@ namespace AspCpwDesktop
                 return;
             }
             Log("Started: " + description);
-            ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/c call \"" + script + "\"");
+            ProcessStartInfo info = new ProcessStartInfo("powershell.exe",
+                "-NoProfile -ExecutionPolicy Bypass -File " + Quote(script) + " " + arguments);
             info.WorkingDirectory = Path.GetDirectoryName(script);
             info.UseShellExecute = false;
             info.CreateNoWindow = false;
+            StartTrackedProcess(info, description, marksServerInstalled);
+        }
+
+        private void StartTrackedProcess(ProcessStartInfo info, string description, bool marksServerInstalled)
+        {
             try
             {
                 Process process = Process.Start(info);
@@ -492,9 +532,22 @@ namespace AspCpwDesktop
             }
         }
 
+        private bool RequireConnectionSettings()
+        {
+            if (SaveSettingsInternal()) return true;
+            mainTabs.SelectedIndex = 3;
+            MessageBox.Show(this, "Complete and save SSH settings before continuing. Only the password will be requested in the console.", "SSH settings required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return false;
+        }
+
+        private static string Quote(string value)
+        {
+            return "\"" + (value ?? "").Replace("\"", "\\\"") + "\"";
+        }
+
         private void RunServerCommand(string command, string description)
         {
-            if (!SaveSettingsInternal()) return;
+            if (!RequireConnectionSettings()) return;
             if (!Regex.IsMatch(settings.Server, "^[A-Za-z0-9.-]+$") ||
                 !Regex.IsMatch(settings.Port, "^[0-9]{1,5}$") ||
                 !Regex.IsMatch(settings.User, "^[a-z_][a-z0-9_-]{0,31}$"))
@@ -520,15 +573,20 @@ namespace AspCpwDesktop
             string port = portBox.Text.Trim();
             string user = userBox.Text.Trim();
             string url = urlBox.Text.Trim();
+            string gameAddress = gameAddressBox.Text.Trim();
+            string gamePort = gamePortBox.Text.Trim();
             int portNumber;
+            int gamePortNumber;
             Uri uri;
             if (!Regex.IsMatch(server, "^[A-Za-z0-9.-]+$") || !Int32.TryParse(port, out portNumber) || portNumber < 1 || portNumber > 65535 ||
-                !Regex.IsMatch(user, "^[a-z_][a-z0-9_-]{0,31}$") || !Uri.TryCreate(url, UriKind.Absolute, out uri))
+                !Regex.IsMatch(user, "^[a-z_][a-z0-9_-]{0,31}$") || !Uri.TryCreate(url, UriKind.Absolute, out uri) ||
+                !Regex.IsMatch(gameAddress, "^[A-Za-z0-9.-]+$") || !Int32.TryParse(gamePort, out gamePortNumber) || gamePortNumber < 1 || gamePortNumber > 65535)
             {
-                MessageBox.Show(this, "Check the server address, SSH port, username, and patch URL.", "Invalid settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "Check the Ubuntu address, SSH port, username, patch URL, game address, and game port.", "Invalid settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             settings.Server = server; settings.Port = port; settings.User = user; settings.PatchUrl = url;
+            settings.GameAddress = gameAddress; settings.GamePort = gamePort;
             settings.Save();
             Log("Connection settings saved.");
             return true;

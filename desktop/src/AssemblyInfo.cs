@@ -6,6 +6,6 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("ASP Editor Studio")]
 [assembly: AssemblyProduct("ASP CPW Desktop Manager")]
 [assembly: AssemblyCopyright("Copyright © ASP Editor Studio 2026")]
-[assembly: AssemblyVersion("0.2.1.0")]
-[assembly: AssemblyFileVersion("0.2.1.0")]
+[assembly: AssemblyVersion("0.3.0.0")]
+[assembly: AssemblyFileVersion("0.3.0.0")]
 [assembly: ComVisible(false)]

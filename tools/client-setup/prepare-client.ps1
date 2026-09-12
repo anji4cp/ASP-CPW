@@ -1,5 +1,11 @@
 param(
-  [string]$ClientPath = ""
+  [string]$ClientPath = "",
+  [string]$Server = "",
+  [string]$Port = "",
+  [string]$User = "",
+  [string]$PatchUrl = "",
+  [string]$GameAddress = "",
+  [string]$GamePort = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -101,12 +107,12 @@ if ($running.Count -gt 0) {
   throw "Close Launcher.exe, patcher.exe, and elementclient.exe before continuing."
 }
 
-$Server = Read-Default "Ubuntu address" "127.0.0.1"
-$PortText = Read-Default "SSH port" "2223"
-$User = Read-Default "SSH username (not password)" "pwadmin"
-$PatchUrl = Read-Default "Public patch URL" "http://127.0.0.1:8081/patch/"
-$GameAddress = Read-Default "Game address" "127.0.0.1"
-$GamePortText = Read-Default "Game port" "29001"
+$Server = if ([string]::IsNullOrWhiteSpace($Server)) { Read-Default "Ubuntu address" "127.0.0.1" } else { $Server.Trim() }
+$PortText = if ([string]::IsNullOrWhiteSpace($Port)) { Read-Default "SSH port" "2223" } else { $Port.Trim() }
+$User = if ([string]::IsNullOrWhiteSpace($User)) { Read-Default "SSH username (not password)" "pwadmin" } else { $User.Trim() }
+$PatchUrl = if ([string]::IsNullOrWhiteSpace($PatchUrl)) { Read-Default "Public patch URL" "http://127.0.0.1:8081/patch/" } else { $PatchUrl.Trim() }
+$GameAddress = if ([string]::IsNullOrWhiteSpace($GameAddress)) { Read-Default "Game address" "127.0.0.1" } else { $GameAddress.Trim() }
+$GamePortText = if ([string]::IsNullOrWhiteSpace($GamePort)) { Read-Default "Game port" "29001" } else { $GamePort.Trim() }
 
 if ($PortText -notmatch '^[0-9]{1,5}$' -or [int]$PortText -lt 1 -or [int]$PortText -gt 65535) { throw "Invalid SSH port." }
 if ($GamePortText -notmatch '^[0-9]{1,5}$' -or [int]$GamePortText -lt 1 -or [int]$GamePortText -gt 65535) { throw "Invalid game port." }

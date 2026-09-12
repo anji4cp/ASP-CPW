@@ -12,8 +12,9 @@ blocked and the user is directed to Settings when connection values are empty or
 
 ## Opening the application
 
-Double-click `ASP-CPW-DESKTOP.cmd` in the repository root. The launcher automatically builds the executable when
-`desktop/bin/ASP-CPW-Desktop.exe` is missing. Windows 10/11 normally includes the required .NET Framework; no
+Double-click `ASP-CPW-DESKTOP.cmd` in the repository root. The launcher reads `desktop/VERSION` and automatically
+builds the versioned executable when it is missing. This allows a new version to be built while an older version
+is still open. Windows 10/11 normally includes the required .NET Framework; no
 .NET SDK or Electron runtime is required.
 
 ## Workflow
@@ -48,5 +49,4 @@ server-side `gshopsev.data` first.
 
 ## Manual build
 
-Run `desktop/BUILD-DESKTOP.cmd`. Source is under `desktop/src`, and output is written to
-`desktop/bin/ASP-CPW-Desktop.exe`.
+Run `desktop/BUILD-DESKTOP.cmd`. Source is under `desktop/src`, and versioned output is written to `desktop/bin`.

@@ -11,8 +11,9 @@ koneksi kosong atau tidak valid, operasi diblokir dan pengguna diarahkan kembali
 
 ## Membuka aplikasi
 
-Klik dua kali `ASP-CPW-DESKTOP.cmd` di root repository. Launcher tersebut membangun executable secara otomatis
-bila `desktop/bin/ASP-CPW-Desktop.exe` belum tersedia. Windows 10/11 umumnya sudah menyediakan .NET Framework
+Klik dua kali `ASP-CPW-DESKTOP.cmd` di root repository. Launcher membaca `desktop/VERSION` dan membangun executable
+berversi secara otomatis bila belum tersedia. Cara ini memungkinkan versi baru dibangun saat versi lama masih
+terbuka. Windows 10/11 umumnya sudah menyediakan .NET Framework
 yang diperlukan; tidak diperlukan .NET SDK atau Electron.
 
 ## Alur penggunaan
@@ -47,5 +48,4 @@ pasangan `gshopsev.data` pada server lebih dahulu.
 
 ## Build manual
 
-Klik `desktop/BUILD-DESKTOP.cmd`. Source berada di `desktop/src` dan hasil berada di
-`desktop/bin/ASP-CPW-Desktop.exe`.
+Klik `desktop/BUILD-DESKTOP.cmd`. Source berada di `desktop/src` dan hasil berversi berada di `desktop/bin`.

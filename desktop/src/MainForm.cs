@@ -61,7 +61,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.3.0";
+            Text = "ASP CPW Desktop Manager 0.3.1";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -167,13 +167,18 @@ namespace AspCpwDesktop
 
             Label guide = SectionTitle("Common client files", Navy, 540, 126);
             page.Controls.Add(guide);
-            page.Controls.Add(TextLabel("elements.data  • Items, NPCs, monsters and definitions", 540, 160, 450));
-            page.Controls.Add(TextLabel("tasks.data     • Quest data", 540, 188, 450));
-            page.Controls.Add(TextLabel("gshop.data     • Boutique client catalog", 540, 216, 450));
-            page.Controls.Add(TextLabel("interfaces.pck • Game UI and interface resources", 540, 244, 450));
-            page.Controls.Add(TextLabel("configs.pck    • Client configuration package", 540, 272, 450));
-            Label warning = TextLabel("For gshop.data, deploy and verify the compatible gshopsev.data on the game server before publishing the client update.", 540, 318, 440, Color.FromArgb(165, 65, 35));
-            warning.Height = 50;
+            Label fileGuide = new Label {
+                Text = "elements.data   • Items, NPCs, monsters and definitions\r\n\r\n" +
+                       "tasks.data        • Quest data\r\n\r\n" +
+                       "gshop.data       • Boutique client catalog\r\n\r\n" +
+                       "interfaces.pck  • Game UI and interface resources\r\n\r\n" +
+                       "configs.pck      • Client configuration package",
+                Location = new Point(540, 160), Size = new Size(450, 180),
+                AutoSize = false, ForeColor = Navy, BackColor = Color.Transparent
+            };
+            page.Controls.Add(fileGuide);
+            Label warning = TextLabel("For gshop.data, deploy and verify the compatible gshopsev.data on the game server before publishing the client update.", 540, 360, 450, Color.FromArgb(165, 65, 35));
+            warning.Height = 70;
             page.Controls.Add(warning);
 
             Button add = ActionButton("Add Checked Files", 18, 480, 200, Green);

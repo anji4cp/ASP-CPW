@@ -9,11 +9,17 @@ if not exist "%CSC%" (
   exit /b 1
 )
 if not exist "%~dp0bin" mkdir "%~dp0bin"
-"%CSC%" /nologo /target:winexe /optimize+ /platform:anycpu /out:"%~dp0bin\ASP-CPW-Desktop.exe" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll "%~dp0src\*.cs"
+set /p "APP_VERSION="<"%~dp0VERSION"
+if "%APP_VERSION%"=="" (
+  echo desktop\VERSION is empty.
+  exit /b 1
+)
+set "OUTPUT=%~dp0bin\ASP-CPW-Desktop-%APP_VERSION%.exe"
+"%CSC%" /nologo /target:winexe /optimize+ /platform:anycpu /out:"%OUTPUT%" /reference:System.dll /reference:System.Core.dll /reference:System.Drawing.dll /reference:System.Windows.Forms.dll "%~dp0src\*.cs"
 if errorlevel 1 (
   echo Build failed.
   pause
   exit /b 1
 )
-echo Built: %~dp0bin\ASP-CPW-Desktop.exe
+echo Built: %OUTPUT%
 exit /b 0

@@ -6,6 +6,7 @@ import tempfile
 import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 if "fcntl" not in sys.modules:
@@ -63,6 +64,31 @@ class ManagerTests(unittest.TestCase):
         self.manager.clear_work_input()
         self.assertFalse(work.exists())
         self.assertEqual(staged.read_bytes(), b"staged")
+
+    def test_reconcile_uses_existing_table_collation_and_adds_unique_index(self):
+        for kind in self.manager.TYPES:
+            root = self.manager.WORK / "CPW" / kind
+            (root / kind).mkdir(parents=True, exist_ok=True)
+            (root / "version").write_text("1\n", encoding="ascii")
+            (root / "files.md5").write_bytes(
+                b"# 1\n" + self.manager.MANIFEST_MARKER + b"signature\n")
+
+        calls = []
+
+        def fake_database_sql(sql):
+            calls.append(sql)
+            if "table_collation" in sql:
+                return "utf8mb4_general_ci"
+            if "information_schema.statistics" in sql:
+                return "0"
+            return ""
+
+        with mock.patch.object(self.manager, "database_sql", side_effect=fake_database_sql):
+            self.manager.reconcile_database_with_output(self.manager.WORK / "CPW")
+
+        maintenance = next(sql for sql in calls if "CREATE TEMPORARY TABLE" in sql)
+        self.assertIn("CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci", maintenance)
+        self.assertTrue(any("ADD UNIQUE KEY uq_files_path" in sql for sql in calls))
 
 
 if __name__ == "__main__":

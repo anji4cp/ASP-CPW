@@ -130,9 +130,16 @@ def database_backup(target: Path) -> None:
     defaults = HOME / "config" / "db.cnf"
     if not defaults.is_file():
         raise ManagerError("Missing protected database client config: config/db.cnf")
+    dump_command = shutil.which("mariadb-dump") or shutil.which("mysqldump")
+    if not dump_command:
+        raise ManagerError(
+            "MariaDB dump utility is missing. Install it with: "
+            "sudo apt-get update && sudo apt-get install -y mariadb-client"
+        )
     with target.open("wb") as handle:
         proc = subprocess.run(
-            ["mariadb-dump", f"--defaults-extra-file={defaults}", "--single-transaction", "cpw_patch"],
+            [dump_command, f"--defaults-extra-file={defaults}", "--single-transaction",
+             "--no-create-db", "--skip-add-locks", "cpw_patch"],
             stdout=handle, stderr=subprocess.PIPE,
         )
     if proc.returncode:
@@ -148,6 +155,93 @@ def database_restore(source: Path) -> None:
         )
     if proc.returncode:
         raise ManagerError("Database restore failed: " + proc.stderr.decode("utf-8", "replace")[-800:])
+
+
+def database_sql(sql: str) -> str:
+    """Run SQL with the restricted CPW account; never expose its password."""
+    defaults = HOME / "config" / "db.cnf"
+    proc = subprocess.run(
+        ["mariadb", f"--defaults-extra-file={defaults}", "--batch", "--skip-column-names", "cpw_patch"],
+        input=sql.encode("utf-8"), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
+    if proc.returncode:
+        raise ManagerError("Database maintenance failed: " + proc.stderr.decode("utf-8", "replace")[-800:])
+    return proc.stdout.decode("utf-8", "replace").strip()
+
+
+def reconcile_database_with_output(root: Path) -> None:
+    """Make CPW database metadata match the last known-good patch output.
+
+    Older CPW schemas omitted the unique path index even though the writer uses
+    ON DUPLICATE KEY UPDATE. That creates duplicate manifest rows after a file is
+    updated and makes the manifest checksum disagree with the overwritten
+    payload. Reconcile from the immutable/previously verified output, remove the
+    duplicates, then install the missing uniqueness constraint.
+    """
+    expected: list[tuple[str, str, str, str, int, int]] = []
+    for kind in TYPES:
+        manifest = root / kind / "files.md5"
+        version_file = root / kind / "version"
+        if not manifest.is_file() or not version_file.is_file():
+            raise ManagerError(f"Cannot reconcile database: missing {kind} manifest/version")
+        version = int(version_file.read_text(encoding="ascii").strip())
+        body = manifest.read_bytes().split(MANIFEST_MARKER, 1)[0]
+        for raw in body.splitlines()[1:]:
+            if not raw.strip():
+                continue
+            digest, encoded_path = raw.decode("ascii", "strict").split(" ", 1)
+            parts = encoded_path.split("/")
+            folder64 = "/".join(parts[:-1])
+            file64 = parts[-1]
+            payload = root / kind / kind / encoded_path
+            if not payload.is_file():
+                raise ManagerError(f"Cannot reconcile database: missing payload {kind}/{encoded_path}")
+            expected.append((kind, folder64, file64, digest, payload.stat().st_size, version))
+
+    table_collation = database_sql(
+        "SELECT table_collation FROM information_schema.tables "
+        "WHERE table_schema=DATABASE() AND table_name='files' LIMIT 1;\n"
+    )
+    if not re.fullmatch(r"[A-Za-z0-9_]+", table_collation):
+        raise ManagerError("Cannot determine a safe collation for the CPW files table")
+    table_charset = table_collation.split("_", 1)[0]
+
+    statements = [
+        "DROP TEMPORARY TABLE IF EXISTS asp_cpw_expected",
+        "CREATE TEMPORARY TABLE asp_cpw_expected ("
+        "type VARCHAR(16) NOT NULL, folder_base64 VARCHAR(700) NOT NULL, "
+        "file_base64 VARCHAR(350) NOT NULL, md5 CHAR(32) NOT NULL, "
+        "size BIGINT NOT NULL, revision INT NOT NULL) "
+        f"DEFAULT CHARACTER SET {table_charset} COLLATE {table_collation}",
+    ]
+    for kind, folder64, file64, digest, size, version in expected:
+        # All string values come from strict ASCII manifest fields and fixed type names.
+        statements.append(
+            "INSERT INTO asp_cpw_expected VALUES "
+            f"('{kind}','{folder64}','{file64}','{digest}',{size},{version})"
+        )
+    statements.extend([
+        "DELETE f FROM files f LEFT JOIN asp_cpw_expected e "
+        "ON e.type=f.type AND e.folder_base64=f.folder_base64 AND e.file_base64=f.file_base64 "
+        "WHERE e.type IS NULL",
+        "UPDATE files f JOIN asp_cpw_expected e "
+        "ON e.type=f.type AND e.folder_base64=f.folder_base64 AND e.file_base64=f.file_base64 "
+        "SET f.md5=e.md5, f.size=e.size, f.revision=e.revision",
+        "UPDATE files keep_row JOIN (SELECT MAX(id) keep_id, MIN(added) first_added "
+        "FROM files GROUP BY type, folder, file HAVING COUNT(*) > 1) d "
+        "ON keep_row.id=d.keep_id SET keep_row.added=d.first_added",
+        "DELETE stale FROM files stale JOIN files newer "
+        "ON stale.type=newer.type AND stale.folder=newer.folder AND stale.file=newer.file "
+        "AND stale.id<newer.id",
+    ])
+    database_sql(";\n".join(statements) + ";\n")
+
+    index_exists = database_sql(
+        "SELECT COUNT(*) FROM information_schema.statistics "
+        "WHERE table_schema=DATABASE() AND table_name='files' AND index_name='uq_files_path';\n"
+    )
+    if index_exists != "1":
+        database_sql("ALTER TABLE files ADD UNIQUE KEY uq_files_path (type, folder, file);\n")
 
 
 def copy_staging_to_input(files: dict[str, list[str]]) -> None:
@@ -277,6 +371,7 @@ def publish(actor: str) -> dict:
     release = None
     archive = backup_dir / "published-input"
     try:
+        reconcile_database_with_output(WORK / "CPW")
         clear_work_input()
         copy_staging_to_input(files)
         run_checked([str(CPW), "new"], cwd=HOME)

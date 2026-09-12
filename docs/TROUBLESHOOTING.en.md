@@ -43,3 +43,24 @@ versions, and RSA key pairing.
 
 Staging input is retained until publication succeeds. Read the system journal and CPW log. Do not use
 `cpw new --force` before checking the failure, disk space, database, and backup.
+
+### `Checksum mismatch` followed by `Access denied ... cpw_patch`
+
+`Clients can now update to this revision` is printed by the CPW engine before ASP's final safety verification.
+When the final result contains `"ok": false`, the release was **not** activated and clients still use the previous
+release.
+
+An early ASP CPW package could keep multiple database rows for the same patch path. The current package:
+
+1. reconciles database metadata with the last verified output;
+2. removes duplicate path rows without deleting source game files;
+3. installs a unique path index so the problem cannot recur; and
+4. creates dumps without database-creation statements, allowing the restricted `asp_cpw` account to restore them.
+
+Reconciliation uses a temporary table. The installer grants the dedicated `CREATE TEMPORARY TABLES` privilege
+to `asp_cpw`, including when upgrading an existing installation. The temporary table automatically inherits
+the legacy CPW table's character set and collation, supporting both `utf8mb4_general_ci` and
+`utf8mb4_unicode_ci` installations.
+
+Reinstall the current package with `INSTALL-ASP-CPW.cmd`. Existing configuration, keys, releases, and staging are
+preserved. When installation finishes, review staging and publish once again.

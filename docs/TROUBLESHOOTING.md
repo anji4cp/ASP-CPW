@@ -42,3 +42,22 @@ Periksa firewall, port forwarding VirtualBox, URL `updateserver.txt`, PID, versi
 
 Input staging tidak dihapus sebelum publish sukses. Baca journal dan log CPW. Jangan menggunakan `cpw new --force`
 tanpa memastikan penyebab kegagalan, ruang disk, database, dan backup.
+
+### `Checksum mismatch` diikuti `Access denied ... cpw_patch`
+
+Pesan `Clients can now update to this revision` berasal dari mesin CPW sebelum pemeriksaan keselamatan ASP selesai.
+Jika hasil akhir berisi `"ok": false`, rilis **belum** diaktifkan dan klien masih memakai rilis lama.
+
+Versi awal paket ASP CPW dapat menyimpan lebih dari satu catatan untuk jalur patch yang sama. Paket terbaru akan:
+
+1. mencocokkan metadata database dengan output terakhir yang sudah terverifikasi;
+2. menghapus catatan jalur ganda tanpa menghapus file game sumber;
+3. memasang indeks jalur unik agar masalah tidak berulang; dan
+4. membuat dump tanpa perintah pembuatan database, sehingga akun terbatas `asp_cpw` dapat memulihkannya.
+
+Rekonsiliasi memakai tabel sementara. Installer memberikan izin khusus `CREATE TEMPORARY TABLES` kepada
+`asp_cpw`; izin ini diterapkan juga ketika memperbarui instalasi lama. Tabel sementara otomatis mengikuti
+charset dan collation tabel CPW lama agar instalasi `utf8mb4_general_ci` maupun `utf8mb4_unicode_ci` didukung.
+
+Pasang ulang paket terbaru menggunakan `INSTALL-ASP-CPW.cmd`. Konfigurasi, kunci, rilis, dan staging yang ada tetap
+dipertahankan. Setelah instalasi selesai, periksa staging lalu publish kembali satu kali.

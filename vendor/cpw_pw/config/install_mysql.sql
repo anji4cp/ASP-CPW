@@ -12,5 +12,6 @@ CREATE TABLE IF NOT EXISTS `files` (
     `file_base64` VARCHAR(350) NOT NULL,
     PRIMARY KEY (`id`),
     INDEX `idx_revision` (`revision`),
-    INDEX `idx_md5` (`md5`)
-) ENGINE=INNODB DEFAULT CHARSET=UTF8MB4;
+    INDEX `idx_md5` (`md5`),
+    UNIQUE KEY `uq_files_path` (`type`, `folder`, `file`)
+) ENGINE=INNODB DEFAULT CHARSET=UTF8MB4 COLLATE=UTF8MB4_UNICODE_CI;

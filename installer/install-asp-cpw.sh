@@ -80,6 +80,14 @@ user=asp_cpw
 password=${DB_PASSWORD}
 EOF
 fi
+
+# Apply the least-privilege maintenance grant on both new and existing installs.
+# The manager uses a temporary table to reconcile legacy duplicate file rows.
+mariadb <<'SQL'
+GRANT CREATE TEMPORARY TABLES ON cpw_patch.* TO 'asp_cpw'@'127.0.0.1';
+FLUSH PRIVILEGES;
+SQL
+
 install -m 0644 "${PACKAGE_DIR}/config/asp-cpw.env.example" /etc/asp-cpw/asp-cpw.env
 chmod 0600 /opt/asp-cpw/config/patcher.conf /opt/asp-cpw/config/db.cnf
 

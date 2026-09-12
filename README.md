@@ -1,96 +1,102 @@
-# ASP CPW Manager
+# ASP CPW — Perfect World Client Patch Manager
 
 **English** | [Bahasa Indonesia](README.id.md)
 
-Lightweight Perfect World client patch management for the PWKU server. It wraps the MIT-licensed
-[`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine with safer release staging, integrity checks,
-atomic publication, rollback, a systemd worker, and integration for the existing PW155 web panel.
+ASP CPW is a lightweight tool for creating, publishing, and managing **Perfect World game client updates**. It turns changed client files into versioned CPW revisions, publishes them to the Ubuntu patch server, and lets a compatible Perfect World launcher download the update.
 
-## What is included
+It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine and adds a Windows desktop workflow, Ubuntu installation, integrity verification, release history, recovery, rollback, and PW155 web-panel integration.
 
-- Precompiled Linux x64 CPW binary; Dart is not required on the Ubuntu server.
-- SHA-256 verification before installation.
-- Dedicated MariaDB database named `cpw_patch` (never the game database `pw`).
-- Staging folders for `element`, `launcher`, and `patcher` updates.
-- MD5 payload and legacy RSA/MD5 manifest verification required by the stock PW launcher.
-- Immutable release history and atomic `current` symlink.
-- Publication rollback without rewriting CPW database history.
-- Admin-only English Patch Manager page in the existing web application.
-- Windows-to-Ubuntu one-click installer.
-- Portable Windows client preparation tool with transactional backup.
-- One-click Windows patch preview and publisher.
-- Integrated Windows desktop app with clearly marked one-time and per-update workflows.
+## What ASP CPW does
 
-## Quick start
+- Creates updates for files below the client `element`, `launcher`, and `patcher` folders.
+- Generates the revision data and signed manifest required by a compatible PW launcher/patcher.
+- Uploads changed files from Windows to the Ubuntu patch server over SSH.
+- Keeps release history and verifies file checksums before a release becomes public.
+- Provides staging inspection, safe recovery, verification, and rollback.
+- Prevents game payloads, passwords, private keys, and generated releases from being committed to Git.
 
-1. Read [Ubuntu installation](docs/INSTALL-UBUNTU.en.md).
-2. On Windows, double-click `INSTALL-ASP-CPW.cmd`.
-3. Securely back up `/opt/asp-cpw/config/keys.json` after installation.
-4. Configure a **test copy** of the client using [Client setup](docs/CLIENT-SETUP.en.md).
-5. Publish a small test file using [Operations](docs/OPERATIONS.en.md).
+ASP CPW does **not** install the Perfect World game server and does not automatically convert client files into their server-side equivalents. Files such as `gshopsev.data`, `npcgen.data`, and `domain.sev` must be deployed through the game-server deployment workflow.
 
-## Repository layout
+## Requirements
 
-| Folder | Purpose |
+- Windows 10 or 11 with the OpenSSH `ssh.exe` and `scp.exe` clients.
+- An Ubuntu PW server reachable through SSH.
+- The Ubuntu SSH address, port, and username.
+- A public patch URL, for example `http://127.0.0.1:8081/patch/` for local testing.
+- A compatible Perfect World Launcher and patcher.
+- A separate copy of the game client for the first test.
+
+The installer installs the required Ubuntu packages, including MariaDB, Python 3, OpenSSL, CA certificates, and curl.
+
+## First-time setup
+
+1. Download or clone this repository on Windows.
+2. Start the Ubuntu VM/server and confirm that SSH is available.
+3. Double-click [`ASP-CPW-DESKTOP.cmd`](ASP-CPW-DESKTOP.cmd).
+4. Open **Settings** and enter:
+   - Ubuntu address
+   - SSH port
+   - SSH username
+   - Public patch URL
+   - Game address and game port
+5. Click **Save Settings**, then **Test SSH / Status**. Password input remains hidden and is never saved.
+6. On the Dashboard, click **Install / Update Server**. Do this once for a new server, or again after this repository has been updated.
+7. Back up `/opt/asp-cpw/config/keys.json` securely. The RSA private key must not be uploaded to GitHub.
+8. Click **Prepare Client** and select a test copy of the Perfect World client. Do this once per client, or repeat it only after changing the patch URL, executable, or RSA key.
+9. Start the prepared launcher and confirm that it can read the patch-server information.
+
+For a manual installation and VirtualBox details, see [Ubuntu installation](docs/INSTALL-UBUNTU.en.md) and [client preparation](docs/CLIENT-SETUP.en.md).
+
+## Creating an update
+
+Use this workflow every time client files change:
+
+1. Finish editing the required files in your Perfect World client.
+2. Close the game, Launcher, patcher, and editors that may still be writing those files.
+3. Open `ASP-CPW-DESKTOP.cmd` and select **Create Update**.
+4. Choose the client folder.
+5. Check only the files that changed, then click **Add Checked Files**. Use **Add Custom Client File** for another file located inside the client.
+6. Open **Preview & Publish** and click **Refresh Preview**.
+7. Review every client path and status. Do not continue if an unexpected file is listed.
+8. Click **Publish Update**, type `PUBLISH` when requested, and enter the SSH/sudo passwords.
+9. Click **Verify Release** after publication succeeds.
+10. Run the Launcher on a test client and verify the update before distributing it to players.
+
+The same update file should not be published twice. An identical file already present in the local `PUBLISHED` archive is marked as a duplicate.
+
+## Important client/server file pairs
+
+Some changes require both a client file and a compatible server file. For example, publish `element/data/gshop.data` to clients only after deploying and testing the matching `gshopsev.data` on the game server. A mismatched pair can make the boutique reject an item or can stop `gs01` during map loading.
+
+ASP CPW distributes only the client side. Deploy and verify server-side files with the server deployment and rollback tools before releasing their client-side counterparts.
+
+## If publication was interrupted
+
+1. Open **Preview & Publish**.
+2. Click **Server Staging**.
+3. If staging shows exactly the files from the interrupted update, use **Publish Existing Staging (Recovery)**.
+4. If staging is empty, use the normal **Publish Update** button instead.
+
+Never use recovery without reviewing the remote staging paths first. More operational and rollback details are available in [Operations](docs/OPERATIONS.en.md), [Rollback](docs/ROLLBACK.en.md), and [Troubleshooting](docs/TROUBLESHOOTING.en.md).
+
+## Main repository files
+
+| Path | Purpose |
 |---|---|
-| `installer/` | Ubuntu installation scripts called by `INSTALL-ASP-CPW.cmd` |
-| `scripts/`, `systemd/` | Release manager, worker, and protected service integration |
-| `web-integration/` | Patch Manager integration for the PWKU admin panel |
-| `tools/client-setup/` | Portable one-click preparation of a test client |
-| `tools/patch-publisher/` | One-click preview and publication of changed client files |
-| `desktop/` | ASP CPW Desktop Manager, build script, source, and bilingual guides |
-| `vendor/cpw_pw/` | Pinned MIT-licensed upstream CPW source |
-| `bin/linux-x64/` | Verified upstream Linux CPW executable |
+| `ASP-CPW-DESKTOP.cmd` | Opens the recommended Windows desktop manager |
+| `INSTALL-ASP-CPW.cmd` | Manual one-click Windows-to-Ubuntu installer |
+| `desktop/` | Desktop application source and versioned executable |
+| `tools/client-setup/` | Manual client-preparation tool |
+| `tools/patch-publisher/` | Manual preview and patch-publishing tools |
+| `scripts/`, `systemd/` | Ubuntu release manager and worker |
+| `web-integration/` | PW155 admin-panel Patch Manager integration |
+| `vendor/cpw_pw/` | Pinned upstream CPW source and license |
 
-The repository intentionally contains no Perfect World client/server data, private RSA keys,
-database credentials, passwords, generated releases, or client backups.
+## Security and repository safety
 
-## Windows tools
+- Passwords are requested by SSH/sudo and are never stored by the desktop application.
+- Do not commit Perfect World client/server files, generated patch payloads, backups, database credentials, or RSA private keys.
+- Run `CHECK-BEFORE-GITHUB.cmd` before committing repository changes.
+- Do not use `git add -f` to bypass the included safeguards.
 
-Prepare a test client by opening `tools/client-setup/PREPARE-ASP-CLIENT.cmd`. The tool asks for the
-full client folder and stores backups below its own ignored `backups/` directory.
-
-Create a patch by reading `tools/patch-publisher/USAGE.md`, putting only changed client files
-below `PATCH-FILES`, previewing them, and then running `PUBLISH-PATCH.cmd`. Patch payloads are ignored
-by Git so copyrighted game files cannot be committed accidentally.
-
-For the integrated workflow, run `ASP-CPW-DESKTOP.cmd`. See [desktop/README.md](desktop/README.md).
-
-## Before uploading to GitHub
-
-Run `CHECK-BEFORE-GITHUB.cmd`. It checks for machine-specific secrets, game payloads, generated
-archives, backups, and unexpectedly large files. Then create the repository normally:
-
-```powershell
-git init
-git add .
-git status
-git commit -m "Initial ASP CPW Manager release"
-```
-
-Review `git status` before every commit. Do not use `git add -f` to bypass the safeguards.
-
-Do not overwrite the only copy of `Launcher.exe` or `patcher.exe`. The installer deliberately does
-not patch or replace Windows client executables automatically.
-
-## Main paths on Ubuntu
-
-| Purpose | Path |
-|---|---|
-| Program and protected keys | `/opt/asp-cpw` |
-| Staging input | `/srv/asp-cpw/staging` |
-| CPW working data | `/srv/asp-cpw/work` |
-| Published releases | `/srv/asp-cpw/releases` |
-| Current public release | `/srv/asp-cpw/current` |
-| Backups | `/srv/asp-cpw/backups` |
-| Web queue/status | `/var/lib/asp-cpw-control` |
-
-## Licensing and provenance
-
-The wrapper and documentation are part of ASP Editor Studio. The vendored CPW engine remains under
-its upstream MIT license, preserved in `LICENSES/cpw_pw-MIT.txt`. The vendored source is pinned from
-upstream commit `9a673ac12cff2f79f611f1bcd36438db3efae3c9`; the bundled release binary checksum is recorded in
-`bin/linux-x64/cpw.sha256.upstream`.
-
-No license for the original ASP Editor Studio wrapper is granted merely by publishing the source.
-Add a separate license only after choosing the distribution terms you want.
+The ASP wrapper and documentation are part of ASP Editor Studio. The bundled `cpw_pw` engine retains its upstream MIT license in [`LICENSES/cpw_pw-MIT.txt`](LICENSES/cpw_pw-MIT.txt).

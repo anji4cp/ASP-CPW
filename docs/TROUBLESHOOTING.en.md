@@ -44,6 +44,11 @@ versions, and RSA key pairing.
 Staging input is retained until publication succeeds. Read the system journal and CPW log. Do not use
 `cpw new --force` before checking the failure, disk space, database, and backup.
 
+## Installer cannot find `/tmp/.../install-asp-cpw.sh`
+
+The current installer derives the remote package directory automatically. The repository directory may be named
+`ASP-CPW`, `ASP-CPW-GitHub`, or another safe name containing only letters, numbers, dots, underscores, and dashes.
+
 ### `Checksum mismatch` followed by `Access denied ... cpw_patch`
 
 `Clients can now update to this revision` is printed by the CPW engine before ASP's final safety verification.

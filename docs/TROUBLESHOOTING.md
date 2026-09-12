@@ -43,6 +43,11 @@ Periksa firewall, port forwarding VirtualBox, URL `updateserver.txt`, PID, versi
 Input staging tidak dihapus sebelum publish sukses. Baca journal dan log CPW. Jangan menggunakan `cpw new --force`
 tanpa memastikan penyebab kegagalan, ruang disk, database, dan backup.
 
+## Installer tidak menemukan `/tmp/.../install-asp-cpw.sh`
+
+Installer terbaru mengambil nama folder paket secara otomatis. Folder repository boleh bernama `ASP-CPW`,
+`ASP-CPW-GitHub`, atau nama aman lain yang hanya memakai huruf, angka, titik, garis bawah, dan tanda hubung.
+
 ### `Checksum mismatch` diikuti `Access denied ... cpw_patch`
 
 Pesan `Clients can now update to this revision` berasal dari mesin CPW sebelum pemeriksaan keselamatan ASP selesai.

@@ -19,6 +19,7 @@ atomic publication, rollback, a systemd worker, and integration for the existing
 - Windows-to-Ubuntu one-click installer.
 - Portable Windows client preparation tool with transactional backup.
 - One-click Windows patch preview and publisher.
+- Integrated Windows desktop app with clearly marked one-time and per-update workflows.
 
 ## Quick start
 
@@ -37,6 +38,7 @@ atomic publication, rollback, a systemd worker, and integration for the existing
 | `web-integration/` | Patch Manager integration for the PWKU admin panel |
 | `tools/client-setup/` | Portable one-click preparation of a test client |
 | `tools/patch-publisher/` | One-click preview and publication of changed client files |
+| `desktop/` | ASP CPW Desktop Manager, build script, source, and bilingual guides |
 | `vendor/cpw_pw/` | Pinned MIT-licensed upstream CPW source |
 | `bin/linux-x64/` | Verified upstream Linux CPW executable |
 
@@ -51,6 +53,8 @@ full client folder and stores backups below its own ignored `backups/` directory
 Create a patch by reading `tools/patch-publisher/USAGE.md`, putting only changed client files
 below `PATCH-FILES`, previewing them, and then running `PUBLISH-PATCH.cmd`. Patch payloads are ignored
 by Git so copyrighted game files cannot be committed accidentally.
+
+For the integrated workflow, run `ASP-CPW-DESKTOP.cmd`. See [desktop/README.md](desktop/README.md).
 
 ## Before uploading to GitHub
 

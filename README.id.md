@@ -19,6 +19,7 @@ pemeriksaan integritas, publikasi atomik, rollback, worker systemd, dan integras
 - Installer sekali klik dari Windows ke Ubuntu.
 - Tool persiapan client Windows portabel dengan backup transaksional.
 - Preview dan publisher patch Windows sekali klik.
+- Aplikasi desktop Windows terpadu dengan penanda langkah sekali dan langkah setiap update.
 
 ## Mulai cepat
 
@@ -37,6 +38,7 @@ pemeriksaan integritas, publikasi atomik, rollback, worker systemd, dan integras
 | `web-integration/` | Integrasi Patch Manager ke panel admin PWKU |
 | `tools/client-setup/` | Persiapan salinan client uji secara portabel |
 | `tools/patch-publisher/` | Preview dan publikasi file client yang berubah |
+| `desktop/` | ASP CPW Desktop Manager, build script, source, dan panduan dua bahasa |
 | `vendor/cpw_pw/` | Source upstream CPW berlisensi MIT pada commit tertentu |
 | `bin/linux-x64/` | Executable CPW Linux upstream yang sudah diverifikasi |
 
@@ -51,6 +53,9 @@ folder client dan menyimpan backup di folder `backups/` yang diabaikan Git.
 Untuk membuat patch, baca `tools/patch-publisher/CARA-PAKAI.md`, letakkan hanya file yang berubah di
 `PATCH-FILES`, lakukan preview, lalu jalankan `PUBLISH-PATCH.cmd`. Payload patch diabaikan Git agar file
 game berhak cipta tidak ikut ter-commit secara tidak sengaja.
+
+Untuk alur terpadu, klik `ASP-CPW-DESKTOP.cmd`. Panduan lengkap tersedia di
+[desktop/README.id.md](desktop/README.id.md).
 
 ## Sebelum upload ke GitHub
 

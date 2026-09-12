@@ -61,7 +61,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.3.1";
+            Text = "ASP CPW Desktop Manager 0.3.2";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -109,40 +109,41 @@ namespace AspCpwDesktop
             Label heading = Heading("Start here / Mulai dari sini", 16, 14);
             page.Controls.Add(heading);
 
-            Panel installCard = Card(18, 58, 500, 205);
+            Panel installCard = Card(18, 58, 500, 220);
             installCard.Controls.Add(SectionTitle("ONE-TIME SETUP", Orange, 18, 16));
-            installCard.Controls.Add(TextLabel("1. Install ASP CPW on Ubuntu", 18, 51, 260));
-            installCard.Controls.Add(TextLabel("Run once, or after updating this repository.", 18, 76, 440, Color.DimGray));
-            Button install = ActionButton("Install / Update Server", 18, 107, 210, Blue);
+            installCard.Controls.Add(WrappingTextLabel("1. Install ASP CPW on Ubuntu", 18, 51, 450));
+            installCard.Controls.Add(WrappingTextLabel("Run once, or after updating this repository.", 18, 82, 450, Color.DimGray));
+            Button install = ActionButton("Install / Update Server", 18, 132, 210, Blue);
             install.Click += delegate { StartServerInstallation(); };
             installCard.Controls.Add(install);
-            installStatus = StatusLabel(248, 117);
+            installStatus = StatusLabel(248, 142);
             installCard.Controls.Add(installStatus);
             page.Controls.Add(installCard);
 
-            Panel prepareCard = Card(536, 58, 500, 205);
+            Panel prepareCard = Card(536, 58, 500, 220);
             prepareCard.Controls.Add(SectionTitle("ONE-TIME PER CLIENT", Orange, 18, 16));
-            prepareCard.Controls.Add(TextLabel("2. Prepare Launcher and Client", 18, 51, 300));
-            prepareCard.Controls.Add(TextLabel("Repeat only for a new client, URL, executable, or RSA key.", 18, 76, 450, Color.DimGray));
-            Button prepare = ActionButton("Prepare Client", 18, 107, 210, Blue);
+            prepareCard.Controls.Add(WrappingTextLabel("2. Prepare Launcher and Client", 18, 51, 450));
+            prepareCard.Controls.Add(WrappingTextLabel("Repeat only for a new client, URL, executable, or RSA key.", 18, 82, 450, Color.DimGray));
+            Button prepare = ActionButton("Prepare Client", 18, 132, 210, Blue);
             prepare.Click += delegate { StartClientPreparation(); };
             prepareCard.Controls.Add(prepare);
-            prepareStatus = StatusLabel(248, 117);
+            prepareStatus = StatusLabel(248, 142);
             prepareCard.Controls.Add(prepareStatus);
             page.Controls.Add(prepareCard);
 
-            Panel repeatCard = Card(18, 282, 1018, 205);
+            Panel repeatCard = Card(18, 298, 1018, 225);
             repeatCard.Controls.Add(SectionTitle("EVERY UPDATE / SETIAP UPDATE", Green, 18, 16));
-            repeatCard.Controls.Add(TextLabel("1. Select changed files  →  2. Preview  →  3. Publish  →  4. Verify and test", 18, 53, 820));
-            repeatCard.Controls.Add(TextLabel("Do not reinstall the server and do not prepare the same client for ordinary data updates.", 18, 80, 850, Color.DimGray));
-            Button create = ActionButton("Create Update", 18, 117, 190, Green);
+            repeatCard.Controls.Add(WrappingTextLabel("1. Select changed files  →  2. Preview  →  3. Publish  →  4. Verify and test", 18, 53, 970));
+            repeatCard.Controls.Add(WrappingTextLabel("Do not reinstall the server and do not prepare the same client for ordinary data updates.", 18, 86, 970, Color.DimGray));
+            Button create = ActionButton("Create Update", 18, 145, 190, Green);
             create.Click += delegate { ((TabControl)page.Parent).SelectedIndex = 1; };
-            Button publish = ActionButton("Preview & Publish", 222, 117, 190, Blue);
+            Button publish = ActionButton("Preview & Publish", 222, 145, 190, Blue);
             publish.Click += delegate { ((TabControl)page.Parent).SelectedIndex = 2; };
             repeatCard.Controls.Add(create); repeatCard.Controls.Add(publish);
             page.Controls.Add(repeatCard);
 
-            Label note = TextLabel("Important: CPW distributes client files only. Server files such as gshopsev.data, npcgen.data and domain.sev belong to server deployment.", 22, 512, 980, Color.FromArgb(165, 65, 35));
+            Label note = WrappingTextLabel("Important: CPW distributes client files only. Server files such as gshopsev.data, npcgen.data and domain.sev belong to server deployment.", 22, 545, 980, Color.FromArgb(165, 65, 35));
+            note.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             page.Controls.Add(note);
             return page;
         }
@@ -666,6 +667,19 @@ namespace AspCpwDesktop
         private Label StatusLabel(int x, int y) { return new Label { Location = new Point(x, y), AutoSize = true, Font = new Font("Segoe UI Semibold", 9.5F) }; }
         private Label TextLabel(string text, int x, int y, int width) { return TextLabel(text, x, y, width, Navy); }
         private Label TextLabel(string text, int x, int y, int width, Color color) { return new Label { Text = text, Location = new Point(x, y), Width = width, AutoSize = false, Height = 38, ForeColor = color }; }
+        private Label WrappingTextLabel(string text, int x, int y, int maximumWidth) { return WrappingTextLabel(text, x, y, maximumWidth, Navy); }
+        private Label WrappingTextLabel(string text, int x, int y, int maximumWidth, Color color)
+        {
+            return new Label {
+                Text = text,
+                Location = new Point(x, y),
+                AutoSize = true,
+                MaximumSize = new Size(maximumWidth, 0),
+                ForeColor = color,
+                BackColor = Color.Transparent,
+                UseCompatibleTextRendering = false
+            };
+        }
         private Button ActionButton(string text, int x, int y, int width, Color color)
         {
             return new Button { Text = text, Location = new Point(x, y), Size = new Size(width, 38), FlatStyle = FlatStyle.Flat, BackColor = color, ForeColor = Color.White, FlatAppearance = { BorderSize = 0 }, Cursor = Cursors.Hand };

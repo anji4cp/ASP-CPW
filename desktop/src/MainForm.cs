@@ -58,7 +58,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.2.0";
+            Text = "ASP CPW Desktop Manager 0.2.1";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -213,10 +213,10 @@ namespace AspCpwDesktop
             verify.Click += delegate { RunServerCommand("sudo asp-cpw-control verify", "Release verification"); };
             page.Controls.Add(refresh); page.Controls.Add(remove); page.Controls.Add(serverPreview); page.Controls.Add(publish); page.Controls.Add(verify);
 
-            Button publishExisting = ActionButton("Publish Existing Staging", 18, 535, 220, Orange);
+            Button publishExisting = ActionButton("Publish Existing Staging (Recovery)", 18, 535, 250, Orange);
             publishExisting.Click += PublishExistingStaging;
             page.Controls.Add(publishExisting);
-            page.Controls.Add(TextLabel("Use this only after Server Staging shows exactly the expected paths. It recovers an upload left behind by a failed publication.", 258, 543, 740, Color.FromArgb(165, 65, 35)));
+            page.Controls.Add(TextLabel("Use only when Server Staging is not empty and shows exactly the expected paths.", 288, 543, 700, Color.FromArgb(165, 65, 35)));
             return page;
         }
 
@@ -502,7 +502,7 @@ namespace AspCpwDesktop
                 MessageBox.Show(this, "Server, port, or SSH username is invalid.", "Invalid settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-            string ssh = String.Format("ssh -t -p {0} {1}@{2} \"{3}; echo.; echo Press any key to close; read -n 1\"",
+            string ssh = String.Format("ssh -t -p {0} {1}@{2} \"{3}; status=$?; printf '\\nPress Enter to close...'; read -r; exit $status\"",
                 settings.Port, settings.User, settings.Server, command.Replace("\"", ""));
             ProcessStartInfo info = new ProcessStartInfo("cmd.exe", "/c " + ssh) { UseShellExecute = true, WorkingDirectory = repoRoot };
             try { Process.Start(info); Log("Opened: " + description); }

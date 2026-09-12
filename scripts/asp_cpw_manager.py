@@ -237,8 +237,9 @@ def reconcile_database_with_output(root: Path) -> None:
     database_sql(";\n".join(statements) + ";\n")
 
     index_exists = database_sql(
-        "SELECT COUNT(*) FROM information_schema.statistics "
-        "WHERE table_schema=DATABASE() AND table_name='files' AND index_name='uq_files_path';\n"
+        "SELECT EXISTS(SELECT 1 FROM information_schema.statistics "
+        "WHERE table_schema=DATABASE() AND table_name='files' "
+        "AND index_name='uq_files_path');\n"
     )
     if index_exists != "1":
         database_sql("ALTER TABLE files ADD UNIQUE KEY uq_files_path (type, folder, file);\n")

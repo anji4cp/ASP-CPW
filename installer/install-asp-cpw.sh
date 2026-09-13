@@ -40,10 +40,19 @@ echo "${CPW_SHA}  ${PACKAGE_DIR}/bin/linux-x64/cpw" | sha256sum --check --status
   exit 1
 }
 
+if ! getent group aspcpw >/dev/null 2>&1; then
+  groupadd --system aspcpw
+fi
 install -d -m 0750 /opt/asp-cpw /opt/asp-cpw/config /opt/asp-cpw/scripts /opt/asp-cpw/log
 install -d -m 0750 /etc/asp-cpw /srv/asp-cpw/work/new /srv/asp-cpw/work/CPW
 install -d -m 0750 /srv/asp-cpw/staging/{element,launcher,patcher} /srv/asp-cpw/releases /srv/asp-cpw/backups
-install -d -m 0750 /var/lib/asp-cpw-control /var/lib/asp-cpw-control/requests
+install -d -o root -g aspcpw -m 0750 /var/lib/asp-cpw-control
+install -d -o root -g aspcpw -m 0770 /var/lib/asp-cpw-control/requests
+# PWPanel remains optional; this only grants access to the request queue when
+# its unprivileged service account already exists.
+if id pwweb >/dev/null 2>&1; then
+  usermod -a -G aspcpw pwweb
+fi
 install -m 0755 "${PACKAGE_DIR}/bin/linux-x64/cpw" /opt/asp-cpw/cpw
 install -m 0755 "${PACKAGE_DIR}/scripts/asp_cpw_manager.py" /opt/asp-cpw/scripts/asp_cpw_manager.py
 install -m 0755 "${PACKAGE_DIR}/scripts/asp_cpw_worker.py" /opt/asp-cpw/scripts/asp_cpw_worker.py

@@ -11,6 +11,9 @@ class ProductSeparationTests(unittest.TestCase):
         self.assertNotIn("/opt/pw155-web", installer)
         self.assertNotIn("pw155-web.service", installer)
         self.assertIn("asp-cpw-http.service", installer)
+        self.assertIn("groupadd --system aspcpw", installer)
+        self.assertIn("install -d -o root -g aspcpw -m 0770", installer)
+        self.assertIn("usermod -a -G aspcpw pwweb", installer)
 
     def test_default_patch_url_uses_standalone_service(self):
         settings = (ROOT / "desktop" / "src" / "AppSettings.cs").read_text(encoding="utf-8")

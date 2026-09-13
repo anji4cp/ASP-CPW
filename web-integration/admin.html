@@ -100,6 +100,34 @@
       <ol class="monitor-events">{{SERVICE_EVENTS}}</ol>
     </section>
 
+    <section class="panel-block backup-block" id="database-backups">
+      <div class="section-heading">
+        <div><span class="section-kicker">DATABASE BACKUPS</span><h2>Backup &amp; download database</h2></div>
+        <span class="monitor-summary"><strong>{{BACKUP_STATE}}</strong><br><small>{{BACKUP_UPDATED}}</small></span>
+      </div>
+      <p>Buat backup manual database game dan portal di VM/VPS. Setelah selesai, arsip yang sama dapat diunduh ke laptop atau PC admin.</p>
+      {{BACKUP_ERROR}}
+      <div class="backup-actions">
+        <form method="post" action="/admin/backups/create" class="backup-create-form">
+          <input type="hidden" name="csrf" value="{{CSRF}}">
+          <label class="check-label">
+            <input type="checkbox" name="confirm" value="yes" required>
+            Saya memahami proses ini membuat dump database baru di server.
+          </label>
+          <button type="submit">Buat backup sekarang</button>
+          <small>Backup berisi database <code>pw</code>, database portal, metadata, dan checksum SHA-256. Game tidak perlu dimatikan.</small>
+        </form>
+        <div class="backup-last-action"><span class="section-kicker">AKSI TERAKHIR</span><p>{{BACKUP_LAST_ACTION}}</p></div>
+      </div>
+      <div class="table-wrap">
+        <table class="admin-table backup-table">
+          <thead><tr><th>Arsip</th><th>Dibuat</th><th>Ukuran</th><th>Aksi</th></tr></thead>
+          <tbody>{{BACKUP_ROWS}}</tbody>
+        </table>
+      </div>
+      <p class="admin-note">Salinan server disimpan selama 14 hari. Download arsip penting ke perangkat admin agar backup tetap tersedia jika VM/VPS atau disk server rusak.</p>
+    </section>
+
     <section class="panel-block">
       <div class="section-heading admin-heading">
         <div><span class="section-kicker">ACCOUNT DIRECTORY</span><h2>Akun &amp; akses GM</h2></div>

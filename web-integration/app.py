@@ -56,6 +56,9 @@ MAP_CONTROL_DIR = Path(os.environ.get(
 CPW_CONTROL_DIR = Path(os.environ.get(
     "PW155_CPW_CONTROL_DIR", "/var/lib/asp-cpw-control"
 ))
+BACKUP_CONTROL_DIR = Path(os.environ.get(
+    "PW155_BACKUP_CONTROL_DIR", "/var/lib/pw155-backup-control"
+))
 NPCGEN_PATH = Path(os.environ.get(
     "PW155_NPCGEN_PATH", "/var/lib/pw155-editor/sources/a61/npcgen.data"
 ))
@@ -121,6 +124,7 @@ CLASS_NAMES = {
 }
 ADMIN_SEARCH_RE = re.compile(r"^[A-Za-z0-9_]{0,20}$")
 DOWNLOAD_FILENAME_RE = re.compile(r"^[A-Za-z0-9_.-]+\.zip$")
+BACKUP_FILENAME_RE = re.compile(r"^PW155-database-[0-9]{8}T[0-9]{6}Z\.tar\.gz$")
 NEWS_STATUSES = {"draft", "published", "archived"}
 
 
@@ -1062,14 +1066,15 @@ def monitor_state():
 
 def support_monitor_state(monitor):
     """Exclude game daemons and maps already shown by Map Control."""
+    optional_names = {"pw155-host-export.timer"}
     services = [
         item for item in monitor.get("services", [])
-        if item.get("kind") != "daemon"
+        if item.get("kind") != "daemon" and str(item.get("name", "")) not in optional_names
     ]
     hidden_names = {
         str(item.get("name", ""))
         for item in monitor.get("services", [])
-        if item.get("kind") == "daemon"
+        if item.get("kind") == "daemon" or str(item.get("name", "")) in optional_names
     }
     events = [
         item for item in monitor.get("events", [])
@@ -1153,6 +1158,78 @@ def queue_map_action(account, action, aliases, client_ip):
         json.dump(request, handle, ensure_ascii=False, separators=(",", ":"))
         handle.write("\n")
     return request
+
+
+def backup_control_state():
+    """Read only sanitized backup metadata prepared by the root worker."""
+    fallback = {"busy": False, "updated_at": "Belum tersedia", "backups": [],
+                "last_action": None, "error": None}
+    try:
+        status = json.loads((BACKUP_CONTROL_DIR / "status.json").read_text(encoding="utf-8"))
+        if not isinstance(status, dict):
+            raise ValueError("Format status backup tidak valid")
+        backups = []
+        for item in status.get("backups", []):
+            if not isinstance(item, dict):
+                continue
+            filename = str(item.get("filename", ""))
+            if not BACKUP_FILENAME_RE.fullmatch(filename):
+                continue
+            backups.append({
+                "filename": filename,
+                "created_at": str(item.get("created_at", "-"))[:32],
+                "bytes": max(0, int(item.get("bytes", 0))),
+            })
+        return {
+            "busy": bool(status.get("busy")),
+            "updated_at": str(status.get("updated_at", "-"))[:40],
+            "backups": backups[:30],
+            "last_action": status.get("last_action")
+            if isinstance(status.get("last_action"), dict) else None,
+            "error": str(status.get("error"))[:1200] if status.get("error") else None,
+        }
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return fallback
+
+
+def queue_backup_action(account, action, client_ip):
+    """Queue a fixed backup action; the web process cannot execute root commands."""
+    if action != "create":
+        raise ValueError("Aksi backup tidak valid")
+    state = backup_control_state()
+    if state["busy"]:
+        raise ValueError("Backup lain masih sedang dibuat")
+    request_dir = BACKUP_CONTROL_DIR / "requests"
+    request_dir.mkdir(parents=True, exist_ok=True)
+    if next(request_dir.glob("*.json"), None) is not None:
+        raise ValueError("Permintaan backup sudah berada dalam antrean")
+    request_id = secrets.token_hex(12)
+    request = {
+        "id": request_id, "action": "create",
+        "actor_id": int(account[0]), "actor": str(account[1])[:20],
+        "client_ip": str(client_ip)[:45],
+        "requested_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    path = request_dir / f"{request_id}.json"
+    descriptor = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        json.dump(request, handle, ensure_ascii=False, separators=(",", ":"))
+        handle.write("\n")
+    return request
+
+
+def resolve_backup_download(filename):
+    """Resolve only a regular allowlisted archive inside the backup download directory."""
+    if not BACKUP_FILENAME_RE.fullmatch(filename or ""):
+        return None
+    root = (BACKUP_CONTROL_DIR / "files").resolve()
+    candidate = root / filename
+    try:
+        if candidate.is_symlink() or not candidate.is_file() or candidate.resolve().parent != root:
+            return None
+    except OSError:
+        return None
+    return candidate
 
 
 def cpw_control_state():
@@ -1557,7 +1634,8 @@ def render_panel(profile, characters, message="", level=""):
 
 
 def render_admin(account, accounts, totals, audit_rows, monitor, news_items,
-                 editor=None, boutique_queue=None, maps=None, search="", message="", level=""):
+                 editor=None, boutique_queue=None, maps=None, search="", message="", level="",
+                 backups=None):
     template = (BASE_DIR / "admin.html").read_text(encoding="utf-8")
     token = new_csrf_token()
     monitor = support_monitor_state(monitor)
@@ -1707,6 +1785,40 @@ def render_admin(account, accounts, totals, audit_rows, monitor, news_items,
         )
     if not core_cards:
         core_cards.append('<span class="core-pill offline">Status daemon belum tersedia</span>')
+    backups = backups or backup_control_state()
+    backup_rows = []
+    for item in backups.get("backups", []):
+        filename = str(item.get("filename", ""))
+        if not BACKUP_FILENAME_RE.fullmatch(filename):
+            continue
+        created = str(item.get("created_at", "-"))
+        if re.fullmatch(r"[0-9]{8}T[0-9]{6}Z", created):
+            created = (f"{created[6:8]}-{created[4:6]}-{created[0:4]} "
+                       f"{created[9:11]}:{created[11:13]}:{created[13:15]} UTC")
+        backup_rows.append(
+            '<tr>'
+            f'<td><strong>{html.escape(filename)}</strong><small>Backup database PW + portal</small></td>'
+            f'<td>{html.escape(created)}</td>'
+            f'<td>{html.escape(format_file_size(item.get("bytes", 0)))}</td>'
+            f'<td><a class="small-link" href="/admin/backups/download/{html.escape(filename, quote=True)}">Download</a></td>'
+            '</tr>'
+        )
+    if not backup_rows:
+        backup_rows.append('<tr><td colspan="4" class="table-empty">Belum ada backup manual yang dapat diunduh.</td></tr>')
+    last_backup = backups.get("last_action")
+    if last_backup:
+        backup_last_action = (
+            f'<strong>{html.escape(str(last_backup.get("actor", "admin")))}</strong> · '
+            f'<span>{html.escape(str(last_backup.get("status", "unknown")))}</span> · '
+            f'{html.escape(str(last_backup.get("message", "-")))}'
+        )
+    else:
+        backup_last_action = "Belum ada permintaan backup manual."
+    backup_state = "SEDANG MEMBUAT BACKUP" if backups.get("busy") else "SIAP"
+    backup_error = (
+        f'<div class="notice">{html.escape(str(backups.get("error")))}</div>'
+        if backups.get("error") else ""
+    )
     replacements = {
         "{{NOTICE}}": notice_html(message, level),
         "{{CSRF}}": html.escape(token, quote=True),
@@ -1736,6 +1848,11 @@ def render_admin(account, accounts, totals, audit_rows, monitor, news_items,
         "{{MAP_MAX_SELECTION}}": str(int(maps.get("max_selection", 6))),
         "{{CORE_STATE}}": html.escape(core_state),
         "{{CORE_CARDS}}": "".join(core_cards),
+        "{{BACKUP_STATE}}": html.escape(backup_state),
+        "{{BACKUP_UPDATED}}": html.escape(str(backups.get("updated_at", "-"))),
+        "{{BACKUP_ROWS}}": "".join(backup_rows),
+        "{{BACKUP_LAST_ACTION}}": backup_last_action,
+        "{{BACKUP_ERROR}}": backup_error,
     }
     for key, value in replacements.items():
         template = template.replace(key, value)
@@ -2194,13 +2311,14 @@ class PWHandler(BaseHTTPRequestHandler):
             editor = admin_news_item(news_id) if news_id else None
             boutique_queue = boutique_pending()
             maps = map_control_state()
+            backups = backup_control_state()
         except (RuntimeError, subprocess.TimeoutExpired, ValueError):
             self.send_error(HTTPStatus.SERVICE_UNAVAILABLE,
                             "Admin panel sedang tidak tersedia")
             return
         body, token = render_admin(account, accounts, totals, audit_rows, monitor,
                                    news_items, editor, boutique_queue, maps,
-                                   search, message, level)
+                                   search, message, level, backups=backups)
         self.send_bytes(HTTPStatus.OK, body.encode("utf-8"),
                         "text/html; charset=utf-8", {
                             "Set-Cookie": f"pwcsrf={token}; Path=/; SameSite=Strict; HttpOnly",
@@ -2411,6 +2529,37 @@ class PWHandler(BaseHTTPRequestHandler):
             "Cache-Control": "no-store",
         })
 
+    def send_backup_download(self, account, filename):
+        try:
+            if not is_panel_admin(account[0]):
+                self.send_error(HTTPStatus.FORBIDDEN, "Akses admin diperlukan")
+                return
+        except (RuntimeError, subprocess.TimeoutExpired):
+            self.send_error(HTTPStatus.SERVICE_UNAVAILABLE)
+            return
+        source = resolve_backup_download(filename)
+        if source is None:
+            self.send_error(HTTPStatus.NOT_FOUND, "Backup tidak ditemukan")
+            return
+        try:
+            size = source.stat().st_size
+            stream = source.open("rb")
+        except OSError:
+            self.send_error(HTTPStatus.NOT_FOUND, "Backup tidak tersedia")
+            return
+        self.send_response(HTTPStatus.OK)
+        self.send_header("Content-Type", "application/gzip")
+        self.send_header("Content-Length", str(size))
+        self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        try:
+            with stream:
+                while chunk := stream.read(1024 * 1024):
+                    self.wfile.write(chunk)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
+
     def do_GET(self):
         parsed = urlsplit(self.path)
         path = parsed.path
@@ -2491,6 +2640,13 @@ class PWHandler(BaseHTTPRequestHandler):
                 self.redirect("/login")
             else:
                 self.send_patch_manager(account)
+            return
+        if path.startswith("/admin/backups/download/"):
+            account = self.session_account()
+            if not account:
+                self.redirect("/login")
+            else:
+                self.send_backup_download(account, path.rsplit("/", 1)[1])
             return
         if path == "/admin/data":
             account = self.session_account()
@@ -2619,6 +2775,7 @@ class PWHandler(BaseHTTPRequestHandler):
         if self.path not in ("/register", "/login", "/logout", "/change-password",
                              "/admin/gm", "/admin/news/save", "/admin/news/status",
                              "/admin/boutique/grant", "/admin/maps/action", "/admin/patch/action",
+                             "/admin/backups/create",
                              "/admin/data/boutique/save",
                              "/admin/data/npc/spawn/save", "/admin/data/equipment/item/save"):
             allowed_extra = ("/admin/data/npc/services/merchant/save",
@@ -2653,6 +2810,8 @@ class PWHandler(BaseHTTPRequestHandler):
             self.handle_admin_maps_action(fields)
         elif self.path == "/admin/patch/action":
             self.handle_admin_patch_action(fields)
+        elif self.path == "/admin/backups/create":
+            self.handle_admin_backup_create(fields)
         elif self.path == "/admin/data/boutique/save":
             self.handle_admin_boutique_save(fields)
         elif self.path == "/admin/data/npc/spawn/save":
@@ -2819,6 +2978,27 @@ class PWHandler(BaseHTTPRequestHandler):
             self.send_patch_manager(account, str(exc), "error")
             return
         self.send_patch_manager(account, "Patch request queued. Refresh this page in a few seconds.", "success")
+
+    def handle_admin_backup_create(self, fields):
+        account = self.require_admin()
+        if not account:
+            return
+        if fields.get("confirm", [""])[0] != "yes":
+            self.send_admin(account, message="Centang konfirmasi sebelum membuat backup.",
+                            level="error")
+            return
+        try:
+            queue_backup_action(account, "create", self.client_key())
+        except (OSError, ValueError) as error:
+            self.send_admin(account, message=f"Permintaan backup ditolak: {error}",
+                            level="error")
+            return
+        self.send_admin(
+            account,
+            message=("Backup database masuk antrean. Muat ulang halaman setelah beberapa saat; "
+                     "tombol Download akan muncul setelah backup selesai."),
+            level="success",
+        )
 
     def handle_admin_news_save(self, fields):
         account = self.require_admin()

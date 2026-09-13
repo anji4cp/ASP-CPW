@@ -117,21 +117,81 @@ if [[ -d /opt/pw155-web && -d "${PACKAGE_DIR}/web-integration" ]]; then
   stamp="$(date -u +%Y%m%d-%H%M%S)"
   install -d -m 0750 "/srv/asp-cpw/backups/web-${stamp}"
   cp -a /opt/pw155-web/app.py /opt/pw155-web/admin.html /opt/pw155-web/static/style.css "/srv/asp-cpw/backups/web-${stamp}/"
+  if ! getent group pwbackup >/dev/null 2>&1; then
+    groupadd --system pwbackup
+  fi
+  usermod -a -G pwbackup "${WEB_USER}"
+  install -d -o root -g pwbackup -m 0750 /var/lib/pw155-backup-control
+  install -d -o root -g pwbackup -m 0770 /var/lib/pw155-backup-control/requests
+  install -d -o root -g pwbackup -m 0750 /var/lib/pw155-backup-control/files
+  install -d -o root -g root -m 0755 /srv/pw155/tools
+  install -d -o root -g root -m 0700 /srv/pw155/backups/database
   install -m 0644 "${PACKAGE_DIR}/web-integration/app.py" /opt/pw155-web/app.py
   install -m 0644 "${PACKAGE_DIR}/web-integration/admin.html" /opt/pw155-web/admin.html
   install -m 0644 "${PACKAGE_DIR}/web-integration/patch_manager.html" /opt/pw155-web/patch_manager.html
   install -m 0644 "${PACKAGE_DIR}/web-integration/style.css" /opt/pw155-web/static/style.css
+  install -m 0755 "${PACKAGE_DIR}/web-integration/backup_control_worker.py" /opt/pw155-web/backup_control_worker.py
+  install -m 0750 "${PACKAGE_DIR}/web-integration/pw155-backup-db.sh" /srv/pw155/tools/pw155-backup-db.sh
   install -d -m 0755 /etc/systemd/system/pw155-web.service.d
   cat > /etc/systemd/system/pw155-web.service.d/asp-cpw.conf <<EOF
 [Service]
+SupplementaryGroups=pwbackup
 Environment=PW155_PATCH_DIR=/srv/asp-cpw/current
 Environment=PW155_CPW_CONTROL_DIR=/var/lib/asp-cpw-control
+Environment=PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control
 ReadWritePaths=/var/lib/asp-cpw-control/requests
+ReadWritePaths=/var/lib/pw155-backup-control/requests
 EOF
+  cat > /etc/systemd/system/pw155-backup-control.service <<'UNIT'
+[Unit]
+Description=Process allowlisted PW155 database backup requests
+After=mariadb.service
+Requires=mariadb.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/pw155-web
+Environment=PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control
+Environment=PW155_BACKUP_ROOT=/srv/pw155/backups/database
+Environment=PW155_BACKUP_SCRIPT=/srv/pw155/tools/pw155-backup-db.sh
+Environment=PW155_BACKUP_RETENTION_DAYS=14
+ExecStart=/usr/bin/python3 /opt/pw155-web/backup_control_worker.py process
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=/var/lib/pw155-backup-control /srv/pw155/backups/database
+RestrictSUIDSGID=true
+LockPersonality=true
+UNIT
+  cat > /etc/systemd/system/pw155-backup-control.path <<'UNIT'
+[Unit]
+Description=Watch for PW155 database backup requests
+
+[Path]
+PathExistsGlob=/var/lib/pw155-backup-control/requests/*.json
+Unit=pw155-backup-control.service
+
+[Install]
+WantedBy=multi-user.target
+UNIT
+  chmod 0644 /etc/systemd/system/pw155-backup-control.service \
+    /etc/systemd/system/pw155-backup-control.path
+  PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control \
+    PW155_BACKUP_ROOT=/srv/pw155/backups/database \
+    /usr/bin/python3 /opt/pw155-web/backup_control_worker.py refresh
 fi
 
 systemctl daemon-reload
 systemctl enable --now asp-cpw-control.path
+if systemctl cat pw155-backup-control.path >/dev/null 2>&1; then
+  systemctl enable --now pw155-backup-control.path
+fi
 if systemctl cat pw155-web.service >/dev/null 2>&1; then
   systemctl restart pw155-web.service
   sleep 2

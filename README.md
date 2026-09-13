@@ -13,6 +13,7 @@ It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine an
 - Uploads changed files from Windows to the Ubuntu patch server over SSH.
 - Keeps release history and verifies file checksums before a release becomes public.
 - Provides staging inspection, safe recovery, verification, and rollback.
+- Adds manual database backup in the Admin Panel, stored on the VM/VPS and downloadable to the administrator's PC.
 - Prevents game payloads, passwords, private keys, and generated releases from being committed to Git.
 
 ASP CPW does **not** install the Perfect World game server and does not automatically convert client files into their server-side equivalents. Files such as `gshopsev.data`, `npcgen.data`, and `domain.sev` must be deployed through the game-server deployment workflow.
@@ -98,5 +99,7 @@ Never use recovery without reviewing the remote staging paths first. More operat
 - Do not commit Perfect World client/server files, generated patch payloads, backups, database credentials, or RSA private keys.
 - Run `CHECK-BEFORE-GITHUB.cmd` before committing repository changes.
 - Do not use `git add -f` to bypass the included safeguards.
+
+After **Install / Update Server**, the Admin Panel provides a **Backup & download database** section. Confirm the action and click **Create backup now**, refresh the page, then click **Download** when the archive is ready. Server copies are retained for 14 days; keep important copies on the administrator's device.
 
 The ASP wrapper and documentation are part of ASP Editor Studio. The bundled `cpw_pw` engine retains its upstream MIT license in [`LICENSES/cpw_pw-MIT.txt`](LICENSES/cpw_pw-MIT.txt).

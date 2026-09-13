@@ -174,6 +174,16 @@ footer { display: flex; justify-content: space-between; padding: 26px 0 38px; bo
 .monitor-event span { color: var(--jade); }
 .monitor-event.offline span { color: #ff948c; }
 .monitor-event em { color: var(--muted); font-style: normal; }
+.backup-block > p { color: var(--muted); }
+.backup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin: 24px 0; }
+.backup-create-form { display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 24px; }
+.backup-create-form label { margin: 0; }
+.backup-create-form small { color: var(--muted); text-align: left; }
+.backup-last-action { padding: 24px; border: 1px solid var(--line); border-left: 2px solid var(--gold); background: rgba(217,180,110,.06); }
+.backup-last-action p { margin: 14px 0 0; color: var(--muted); overflow-wrap: anywhere; }
+.backup-last-action strong { color: var(--ink); }
+.backup-last-action span:not(.section-kicker) { color: var(--jade); }
+.backup-table { min-width: 760px; }
 .map-control-block > p { color: var(--muted); }
 .core-control-card { display: grid; grid-template-columns: 1.15fr .85fr; gap: 24px; margin: 24px 0 34px; padding: 24px; border: 1px solid var(--line); border-top: 2px solid var(--jade); background: rgba(109,224,176,.045); }
 .core-control-card h3 { margin: 5px 0 15px; font: 400 29px Georgia, serif; }
@@ -308,7 +318,7 @@ code { color: #b9e9d5; background: rgba(109,224,176,.08); padding: 2px 6px; }
 .secondary-button { color: var(--gold); background: transparent; border: 1px solid var(--gold); }
 
 @media (max-width: 760px) {
-  .status-panel, .register, .auth-shell, .security-grid, .news-admin-grid, .boutique-admin-grid, .editor-module-grid, .map-option-grid, .core-control-card { grid-template-columns: 1fr; gap: 40px; }
+  .status-panel, .register, .auth-shell, .security-grid, .news-admin-grid, .boutique-admin-grid, .editor-module-grid, .map-option-grid, .core-control-card, .backup-actions { grid-template-columns: 1fr; gap: 40px; }
   .editor-toolbar { align-items: stretch; flex-direction: column; }
   .edit-form-grid, .compact-editor-form, .materials-grid { grid-template-columns: 1fr; }
   .wide-field { grid-column: auto; }

@@ -13,6 +13,7 @@ ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlise
 - Mengunggah file yang berubah dari Windows ke patch server Ubuntu melalui SSH.
 - Menyimpan riwayat release dan memeriksa checksum sebelum release dipublikasikan.
 - Menyediakan pemeriksaan staging, recovery aman, verifikasi, dan rollback.
+- Menambahkan backup database manual dari Admin Panel yang dapat disimpan di VM/VPS dan diunduh ke PC admin.
 - Mencegah payload game, password, private key, dan release hasil generate masuk ke Git.
 
 ASP CPW **bukan** installer server game Perfect World dan tidak mengubah file client menjadi pasangan file server secara otomatis. File seperti `gshopsev.data`, `npcgen.data`, dan `domain.sev` harus dipasang melalui alur deployment server game.
@@ -98,5 +99,7 @@ Jangan menggunakan recovery sebelum memeriksa seluruh path pada staging server. 
 - Jangan commit file client/server Perfect World, payload patch, backup, kredensial database, atau RSA private key.
 - Jalankan `CHECK-BEFORE-GITHUB.cmd` sebelum melakukan commit perubahan repositori.
 - Jangan menggunakan `git add -f` untuk melewati perlindungan yang tersedia.
+
+Setelah **Install / Update Server**, Admin Panel menyediakan bagian **Backup & download database**. Centang konfirmasi dan klik **Buat backup sekarang**, muat ulang halaman, lalu klik **Download** ketika arsip sudah siap. Backup server dipertahankan selama 14 hari; simpan salinan penting di perangkat admin.
 
 Wrapper ASP dan dokumentasinya adalah bagian dari ASP Editor Studio. Engine `cpw_pw` tetap menggunakan lisensi MIT upstream yang tersimpan di [`LICENSES/cpw_pw-MIT.txt`](LICENSES/cpw_pw-MIT.txt).

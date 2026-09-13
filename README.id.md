@@ -14,7 +14,8 @@ ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlise
 - Menyimpan riwayat release dan memeriksa checksum sebelum release dipublikasikan.
 - Menyediakan pemeriksaan staging, recovery aman, verifikasi, dan rollback.
 - Menyajikan file patch secara mandiri pada port TCP `8082`; ASP PWPanel tidak dibutuhkan.
-- Mengatur URL Register, Arc/Website, Support, Forum, dan panel News pada Launcher tanpa hex edit.
+- Mengatur URL Register, Arc/Website, Support, Forum, dan News tanpa hex edit.
+- Menyediakan ASP Launcher yang menampilkan News tanpa bergantung pada browser patcher lama.
 - Mencegah payload game, password, private key, dan release hasil generate masuk ke Git.
 
 ASP CPW **bukan** installer server game Perfect World dan tidak mengubah file client menjadi pasangan file server secara otomatis. File seperti `gshopsev.data`, `npcgen.data`, dan `domain.sev` harus dipasang melalui alur deployment server game.
@@ -51,12 +52,17 @@ Installer akan memasang paket Ubuntu yang diperlukan, termasuk MariaDB, Python 3
 
 Buka **Launcher Links** di ASP CPW Desktop, lalu masukkan URL lengkap yang
 diawali `http://` atau `https://`. Gunakan endpoint `/launcher-news` dari ASP
-PWPanel untuk **News panel URL** agar kompatibel dengan browser lama di kotak
-tengah Launcher; kolom lainnya mengatur tombol Register, Arc/Website, Support, dan
+PWPanel untuk **News panel URL**. Kolom lainnya mengatur tombol Register, Arc/Website, Support, dan
 Forum. Pilih **Apply to Selected Client** untuk client lama yang sudah disiapkan,
 atau jalankan **Prepare Client** agar link diterapkan bersama proses persiapan.
 Untuk pemain yang sudah memiliki Launcher, publish file
 `patcher/skin/mainuni.xml` melalui channel `patcher`.
+
+Sebagian patcher PW lama yang ditandatangani berhenti menjalankan browser internal
+setelah RSA key diubah. Jalankan [`INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd`](INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd)
+satu kali. Installer menyimpan patcher asli sebagai `patcher-core.exe`, lalu memasang
+ASP Launcher berhak Administrator sebagai `patcher.exe`. Dengan demikian, News tampil
+baik melalui `Launcher.exe` bawaan maupun ketika `patcher.exe` diklik langsung.
 
 Untuk instalasi manual dan pengaturan VirtualBox, baca [instalasi Ubuntu](docs/INSTALL-UBUNTU.md) dan [persiapan client](docs/CLIENT-SETUP.md).
 
@@ -97,8 +103,12 @@ Jangan menggunakan recovery sebelum memeriksa seluruh path pada staging server. 
 | Lokasi | Fungsi |
 |---|---|
 | `ASP-CPW-DESKTOP.cmd` | Membuka aplikasi desktop Windows yang direkomendasikan |
+| `ASP-LAUNCHER.cmd` | Membuka ASP Launcher ringan dengan panel News mandiri |
+| `INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd` | Mengintegrasikan ASP Launcher sebagai `patcher.exe` client secara aman |
+| `RESTORE-ORIGINAL-PATCHER.cmd` | Memulihkan patcher asli pada client |
 | `INSTALL-ASP-CPW.cmd` | Installer manual sekali klik dari Windows ke Ubuntu |
 | `desktop/` | Source dan executable aplikasi desktop berdasarkan versi |
+| `launcher/` | Source, panduan dua bahasa, dan executable ASP Launcher |
 | `tools/client-setup/` | Tool manual untuk menyiapkan client |
 | `tools/patch-publisher/` | Tool manual untuk preview dan menerbitkan patch |
 | `scripts/`, `systemd/` | Release manager, worker, dan layanan patch mandiri Ubuntu |

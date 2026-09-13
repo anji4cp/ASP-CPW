@@ -14,7 +14,8 @@ It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine an
 - Keeps release history and verifies file checksums before a release becomes public.
 - Provides staging inspection, safe recovery, verification, and rollback.
 - Serves published patch files independently on TCP port `8082`; ASP PWPanel is not required.
-- Configures the launcher's Register, Arc/Website, Support, Forum, and embedded News URLs without hex editing.
+- Configures Register, Arc/Website, Support, Forum, and News URLs without hex editing.
+- Includes ASP Launcher, which displays News independently from the legacy patcher's browser.
 - Prevents game payloads, passwords, private keys, and generated releases from being committed to Git.
 
 ASP CPW does **not** install the Perfect World game server and does not automatically convert client files into their server-side equivalents. Files such as `gshopsev.data`, `npcgen.data`, and `domain.sev` must be deployed through the game-server deployment workflow.
@@ -50,13 +51,18 @@ The installer installs the required Ubuntu packages, including MariaDB, Python 3
 ### Launcher website links
 
 Open **Launcher Links** in ASP CPW Desktop and enter absolute `http://` or
-`https://` URLs. Use ASP PWPanel's `/launcher-news` endpoint for **News panel URL**;
-it is shown inside the launcher's center box and supports the legacy browser;
-the other fields control the Register, Arc/Website, Support, and Forum buttons.
+`https://` URLs. Use ASP PWPanel's `/launcher-news` endpoint for **News panel URL**.
+The other fields control the Register, Arc/Website, Support, and Forum buttons.
 Select **Apply to Selected Client** for an existing prepared client, or run
 **Prepare Client** to apply the links together with the normal preparation.
 For players who already have the launcher, publish
 `patcher/skin/mainuni.xml` through the `patcher` channel.
+
+Some signed legacy PW patchers stop loading their embedded browser after their
+RSA key is changed. Run [`INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd`](INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd)
+once. It keeps the original as `patcher-core.exe` and installs the Administrator-enabled
+ASP Launcher as `patcher.exe`, so both the stock `Launcher.exe` and a direct
+`patcher.exe` launch show the News panel.
 
 For a manual installation and VirtualBox details, see [Ubuntu installation](docs/INSTALL-UBUNTU.en.md) and [client preparation](docs/CLIENT-SETUP.en.md).
 
@@ -97,8 +103,12 @@ Never use recovery without reviewing the remote staging paths first. More operat
 | Path | Purpose |
 |---|---|
 | `ASP-CPW-DESKTOP.cmd` | Opens the recommended Windows desktop manager |
+| `ASP-LAUNCHER.cmd` | Opens the lightweight ASP Launcher with an independent News panel |
+| `INSTALL-ASP-LAUNCHER-TO-CLIENT.cmd` | Safely integrates ASP Launcher as the client's `patcher.exe` |
+| `RESTORE-ORIGINAL-PATCHER.cmd` | Restores the original client patcher |
 | `INSTALL-ASP-CPW.cmd` | Manual one-click Windows-to-Ubuntu installer |
 | `desktop/` | Desktop application source and versioned executable |
+| `launcher/` | ASP Launcher source, bilingual guide, and versioned executable |
 | `tools/client-setup/` | Manual client-preparation tool |
 | `tools/patch-publisher/` | Manual preview and patch-publishing tools |
 | `scripts/`, `systemd/` | Ubuntu release manager, worker, and standalone patch service |

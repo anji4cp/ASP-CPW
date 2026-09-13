@@ -6,14 +6,14 @@ Gunakan salinan client khusus pengujian. Jangan langsung mengubah client utama p
 
 ## Alamat patch
 
-Web PWKU menyediakan CPW dari endpoint `/patch/`. Contoh untuk server NAT VirtualBox:
+Layanan mandiri ASP CPW menyediakan endpoint `/patch/` pada port guest `8082`. Contoh untuk VirtualBox NAT dengan host port yang sama:
 
 ```text
-http://127.0.0.1:8081/patch/
+http://127.0.0.1:8082/patch/
 ```
 
-Nilai `8081` adalah port host VirtualBox pada konfigurasi PWKU saat ini (diteruskan ke port `8080` di VM).
-Bila memakai Bridged Adapter, gunakan `http://IP-VM:8080/patch/`.
+Tambahkan aturan NAT TCP host `8082` ke guest `8082`. Bila memakai Bridged Adapter, gunakan
+`http://IP-VM:8082/patch/`. ASP PWPanel tidak diperlukan untuk menyajikan patch.
 
 Pada client, buka `patcher/server/updateserver.txt`, hapus alamat resmi yang tidak dipakai, lalu masukkan
 alamat tersebut sesuai format yang sudah digunakan file asli. Pastikan URL diakhiri `/`.

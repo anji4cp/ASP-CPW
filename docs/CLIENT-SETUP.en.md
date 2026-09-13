@@ -6,14 +6,14 @@ Use a dedicated test copy of the client. Do not modify the players' primary clie
 
 ## Patch address
 
-The PWKU web service exposes CPW at `/patch/`. Example for VirtualBox NAT:
+The standalone ASP CPW service exposes `/patch/` on guest port `8082`. Example for VirtualBox NAT using the same host port:
 
 ```text
-http://127.0.0.1:8081/patch/
+http://127.0.0.1:8082/patch/
 ```
 
-Port `8081` is the Windows host port forwarded to port `8080` in the VM. With a Bridged Adapter, use
-`http://VM-IP:8080/patch/`.
+Add a TCP NAT rule from host port `8082` to guest port `8082`. With a Bridged Adapter, use
+`http://VM-IP:8082/patch/`. ASP PWPanel is not required to serve patches.
 
 In the client, `patcher/server/updateserver.txt` must use the same format and UTF-16 LE encoding as the
 original file. Always end the URL with `/`. The portable tool handles this automatically.

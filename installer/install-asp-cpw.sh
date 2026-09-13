@@ -23,7 +23,6 @@ fi
 
 PACKAGE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CPW_SHA="30cf6ad8986cd308b4458b2ceaf8ba9a6ea86a7ea256114394aa375bd03abad6"
-WEB_USER="${ASP_CPW_WEB_USER:-pwweb}"
 
 echo "ASP CPW Manager installer"
 echo "Ubuntu: ${PRETTY_NAME}"
@@ -48,6 +47,7 @@ install -d -m 0750 /var/lib/asp-cpw-control /var/lib/asp-cpw-control/requests
 install -m 0755 "${PACKAGE_DIR}/bin/linux-x64/cpw" /opt/asp-cpw/cpw
 install -m 0755 "${PACKAGE_DIR}/scripts/asp_cpw_manager.py" /opt/asp-cpw/scripts/asp_cpw_manager.py
 install -m 0755 "${PACKAGE_DIR}/scripts/asp_cpw_worker.py" /opt/asp-cpw/scripts/asp_cpw_worker.py
+install -m 0755 "${PACKAGE_DIR}/scripts/asp_cpw_http.py" /opt/asp-cpw/scripts/asp_cpw_http.py
 install -m 0755 "${PACKAGE_DIR}/scripts/asp-cpw-control" /usr/local/sbin/asp-cpw-control
 install -m 0644 "${PACKAGE_DIR}/vendor/cpw_pw/config/install_mysql.sql" /opt/asp-cpw/config/install_mysql.sql
 
@@ -88,19 +88,18 @@ GRANT CREATE TEMPORARY TABLES ON cpw_patch.* TO 'asp_cpw'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
 
-install -m 0644 "${PACKAGE_DIR}/config/asp-cpw.env.example" /etc/asp-cpw/asp-cpw.env
+if [[ ! -f /etc/asp-cpw/asp-cpw.env ]]; then
+  install -m 0644 "${PACKAGE_DIR}/config/asp-cpw.env.example" /etc/asp-cpw/asp-cpw.env
+else
+  echo "Existing ASP CPW service settings found; preserving them."
+fi
 chmod 0600 /opt/asp-cpw/config/patcher.conf /opt/asp-cpw/config/db.cnf
 
 install -m 0644 "${PACKAGE_DIR}/systemd/asp-cpw-control.service" /etc/systemd/system/asp-cpw-control.service
 install -m 0644 "${PACKAGE_DIR}/systemd/asp-cpw-control.path" /etc/systemd/system/asp-cpw-control.path
+install -m 0644 "${PACKAGE_DIR}/systemd/asp-cpw-http.service" /etc/systemd/system/asp-cpw-http.service
 
-if id "${WEB_USER}" >/dev/null 2>&1; then
-  chown root:"${WEB_USER}" /var/lib/asp-cpw-control /var/lib/asp-cpw-control/requests
-  chmod 2750 /var/lib/asp-cpw-control
-  chmod 2770 /var/lib/asp-cpw-control/requests
-  chown root:"${WEB_USER}" /srv/asp-cpw /srv/asp-cpw/releases
-  chmod 0750 /srv/asp-cpw /srv/asp-cpw/releases
-fi
+chmod 0755 /srv/asp-cpw /srv/asp-cpw/releases
 
 if [[ ! -L /srv/asp-cpw/current ]]; then
   /usr/local/sbin/asp-cpw-control bootstrap --actor installer
@@ -113,103 +112,19 @@ chown root:root /opt/asp-cpw/config/keys.json
 /usr/local/sbin/asp-cpw-control status > /var/lib/asp-cpw-control/snapshot.json
 chmod 0644 /var/lib/asp-cpw-control/status.json /var/lib/asp-cpw-control/snapshot.json
 
-if [[ -d /opt/pw155-web && -d "${PACKAGE_DIR}/web-integration" ]]; then
-  stamp="$(date -u +%Y%m%d-%H%M%S)"
-  install -d -m 0750 "/srv/asp-cpw/backups/web-${stamp}"
-  cp -a /opt/pw155-web/app.py /opt/pw155-web/admin.html /opt/pw155-web/static/style.css "/srv/asp-cpw/backups/web-${stamp}/"
-  if [[ -f /opt/pw155-web/static/app.js ]]; then
-    cp -a /opt/pw155-web/static/app.js "/srv/asp-cpw/backups/web-${stamp}/"
-  fi
-  if ! getent group pwbackup >/dev/null 2>&1; then
-    groupadd --system pwbackup
-  fi
-  usermod -a -G pwbackup "${WEB_USER}"
-  install -d -o root -g pwbackup -m 0750 /var/lib/pw155-backup-control
-  install -d -o root -g pwbackup -m 0770 /var/lib/pw155-backup-control/requests
-  install -d -o root -g pwbackup -m 0750 /var/lib/pw155-backup-control/files
-  install -d -o root -g root -m 0755 /srv/pw155/tools
-  install -d -o root -g root -m 0700 /srv/pw155/backups/database
-  install -m 0644 "${PACKAGE_DIR}/web-integration/app.py" /opt/pw155-web/app.py
-  install -m 0644 "${PACKAGE_DIR}/web-integration/admin.html" /opt/pw155-web/admin.html
-  install -m 0644 "${PACKAGE_DIR}/web-integration/panel.html" /opt/pw155-web/panel.html
-  install -m 0755 "${PACKAGE_DIR}/web-integration/role_operations.py" /opt/pw155-web/role_operations.py
-  install -m 0644 "${PACKAGE_DIR}/web-integration/patch_manager.html" /opt/pw155-web/patch_manager.html
-  install -m 0644 "${PACKAGE_DIR}/web-integration/style.css" /opt/pw155-web/static/style.css
-  install -m 0644 "${PACKAGE_DIR}/web-integration/app.js" /opt/pw155-web/static/app.js
-  install -m 0755 "${PACKAGE_DIR}/web-integration/backup_control_worker.py" /opt/pw155-web/backup_control_worker.py
-  install -m 0750 "${PACKAGE_DIR}/web-integration/pw155-backup-db.sh" /srv/pw155/tools/pw155-backup-db.sh
-  mariadb --batch < "${PACKAGE_DIR}/web-integration/player-services.sql"
-  install -d -m 0755 /etc/systemd/system/pw155-web.service.d
-  cat > /etc/systemd/system/pw155-web.service.d/asp-cpw.conf <<EOF
-[Service]
-SupplementaryGroups=pwbackup
-Environment=PW155_PATCH_DIR=/srv/asp-cpw/current
-Environment=PW155_CPW_CONTROL_DIR=/var/lib/asp-cpw-control
-Environment=PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control
-ReadWritePaths=/var/lib/asp-cpw-control/requests
-ReadWritePaths=/var/lib/pw155-backup-control/requests
-EOF
-  cat > /etc/systemd/system/pw155-backup-control.service <<'UNIT'
-[Unit]
-Description=Process allowlisted PW155 database backup requests
-After=mariadb.service
-Requires=mariadb.service
-
-[Service]
-Type=oneshot
-User=root
-Group=root
-WorkingDirectory=/opt/pw155-web
-Environment=PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control
-Environment=PW155_BACKUP_ROOT=/srv/pw155/backups/database
-Environment=PW155_BACKUP_SCRIPT=/srv/pw155/tools/pw155-backup-db.sh
-Environment=PW155_BACKUP_RETENTION_DAYS=14
-ExecStart=/usr/bin/python3 /opt/pw155-web/backup_control_worker.py process
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
-ReadWritePaths=/var/lib/pw155-backup-control /srv/pw155/backups/database
-RestrictSUIDSGID=true
-LockPersonality=true
-UNIT
-  cat > /etc/systemd/system/pw155-backup-control.path <<'UNIT'
-[Unit]
-Description=Watch for PW155 database backup requests
-
-[Path]
-PathExistsGlob=/var/lib/pw155-backup-control/requests/*.json
-Unit=pw155-backup-control.service
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-  chmod 0644 /etc/systemd/system/pw155-backup-control.service \
-    /etc/systemd/system/pw155-backup-control.path
-  PW155_BACKUP_CONTROL_DIR=/var/lib/pw155-backup-control \
-    PW155_BACKUP_ROOT=/srv/pw155/backups/database \
-    /usr/bin/python3 /opt/pw155-web/backup_control_worker.py refresh
-fi
-
 systemctl daemon-reload
 systemctl enable --now asp-cpw-control.path
-if systemctl cat pw155-backup-control.path >/dev/null 2>&1; then
-  systemctl enable --now pw155-backup-control.path
-fi
-if systemctl cat pw155-web.service >/dev/null 2>&1; then
-  systemctl restart pw155-web.service
-  sleep 2
-  systemctl is-active --quiet pw155-web.service
-  curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8080/api/status >/dev/null
-  curl --fail --silent --show-error --max-time 10 http://127.0.0.1:8080/patch/info/pid >/dev/null
-fi
+systemctl enable --now asp-cpw-http.service
+sleep 2
+systemctl is-active --quiet asp-cpw-http.service
+HTTP_PORT="$(awk -F= '$1 == "ASP_CPW_HTTP_PORT" {print $2}' /etc/asp-cpw/asp-cpw.env | tail -n 1)"
+[[ ${HTTP_PORT:-} =~ ^[0-9]+$ ]] || HTTP_PORT=8082
+curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:${HTTP_PORT}/health" >/dev/null
+curl --fail --silent --show-error --max-time 10 "http://127.0.0.1:${HTTP_PORT}/patch/info/pid" >/dev/null
 
 echo
 echo "Installation complete."
 echo "Staging: /srv/asp-cpw/staging/{element,launcher,patcher}"
 echo "CLI:     sudo asp-cpw-control status"
-echo "Web:     Admin Panel -> Patch Manager"
+echo "HTTP:    http://SERVER-IP:${HTTP_PORT}/patch/"
 echo "Keys:    /opt/asp-cpw/config/keys.json (BACK THIS FILE UP SECURELY)"

@@ -66,9 +66,10 @@ fingerprint prompt, then enter the Ubuntu password. Password characters are inte
 6. Confirm installation with Enter or `Y`.
 7. Wait for `Installation complete`.
 
-The installer can safely be run again to repair services or web integration. Existing RSA keys and releases are
+The installer can safely be run again to repair ASP CPW services. Existing RSA keys and releases are
 preserved. It installs MariaDB when required, creates the dedicated `cpw_patch` database, creates the initial
-RSA key and baseline, installs the systemd worker, and integrates `/opt/pw155-web` when found.
+RSA key and baseline, and installs the systemd worker and standalone HTTP patch service. It does not install or
+update ASP PWPanel.
 
 ## 6. Verify the installation
 
@@ -77,11 +78,12 @@ Run over SSH:
 ```bash
 sudo asp-cpw-control status
 sudo systemctl status asp-cpw-control.path --no-pager
-sudo systemctl status pw155-web --no-pager
+sudo systemctl status asp-cpw-http --no-pager
+curl http://127.0.0.1:8082/health
 ```
 
-Log in to the web admin account and open **Admin Panel > Patch Manager**. The state should be `READY` and the
-`baseline` release should be visible.
+The status command should show the `baseline` release, the service should be `active`, and the health endpoint
+should return `ASP CPW patch service is online`.
 
 ## 7. Required backups
 

@@ -39,7 +39,7 @@ Melalui CLI:
 sudo asp-cpw-control publish --actor pwadmin
 ```
 
-Atau buka **Admin Panel > Patch Manager**, centang konfirmasi, lalu pilih **Publish staged update**.
+Atau gunakan tab **Preview & Publish** pada ASP CPW Desktop dan pilih **Publish Existing Staging (Recovery)** setelah memeriksa seluruh path.
 
 Sebelum CPW dijalankan, manager menyimpan dump database dan snapshot output. Setelah CPW selesai, manager
 memverifikasi checksum setiap payload dan signature manifest, membuat release immutable, kemudian mengganti

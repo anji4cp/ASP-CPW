@@ -11,7 +11,7 @@ namespace AspCpwDesktop
         public string Server = "127.0.0.1";
         public string Port = "2223";
         public string User = "pwadmin";
-        public string PatchUrl = "http://127.0.0.1:8081/patch/";
+        public string PatchUrl = "http://127.0.0.1:8082/patch/";
         public string GameAddress = "127.0.0.1";
         public string GamePort = "29001";
         public bool ServerInstalled;

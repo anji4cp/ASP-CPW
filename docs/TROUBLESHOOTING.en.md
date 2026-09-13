@@ -6,7 +6,7 @@
 
 ```bash
 sudo asp-cpw-control status
-sudo systemctl restart asp-cpw-control.path pw155-web
+sudo systemctl restart asp-cpw-control.path asp-cpw-http
 sudo ls -la /var/lib/asp-cpw-control
 ```
 
@@ -32,8 +32,8 @@ public key into both launcher executables.
 Test the endpoints from Windows:
 
 ```powershell
-curl.exe http://127.0.0.1:8081/patch/info/pid
-curl.exe http://127.0.0.1:8081/patch/element/version
+curl.exe http://127.0.0.1:8082/patch/info/pid
+curl.exe http://127.0.0.1:8082/patch/element/version
 ```
 
 Check the firewall, VirtualBox port forwarding, `updateserver.txt` URL and UTF-16 LE encoding, PID, `.sw`

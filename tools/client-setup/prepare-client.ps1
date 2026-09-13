@@ -110,7 +110,7 @@ if ($running.Count -gt 0) {
 $Server = if ([string]::IsNullOrWhiteSpace($Server)) { Read-Default "Ubuntu address" "127.0.0.1" } else { $Server.Trim() }
 $PortText = if ([string]::IsNullOrWhiteSpace($Port)) { Read-Default "SSH port" "2223" } else { $Port.Trim() }
 $User = if ([string]::IsNullOrWhiteSpace($User)) { Read-Default "SSH username (not password)" "pwadmin" } else { $User.Trim() }
-$PatchUrl = if ([string]::IsNullOrWhiteSpace($PatchUrl)) { Read-Default "Public patch URL" "http://127.0.0.1:8081/patch/" } else { $PatchUrl.Trim() }
+$PatchUrl = if ([string]::IsNullOrWhiteSpace($PatchUrl)) { Read-Default "Public patch URL" "http://127.0.0.1:8082/patch/" } else { $PatchUrl.Trim() }
 $GameAddress = if ([string]::IsNullOrWhiteSpace($GameAddress)) { Read-Default "Game address" "127.0.0.1" } else { $GameAddress.Trim() }
 $GamePortText = if ([string]::IsNullOrWhiteSpace($GamePort)) { Read-Default "Game port" "29001" } else { $GamePort.Trim() }
 

@@ -4,7 +4,7 @@
 
 ASP CPW adalah aplikasi ringan untuk membuat, menerbitkan, dan mengelola **update client game Perfect World**. File client yang berubah akan dibuat menjadi revisi CPW, diterbitkan ke patch server Ubuntu, lalu dapat diunduh oleh Launcher Perfect World yang kompatibel.
 
-ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlisensi MIT dan menambahkan aplikasi desktop Windows, installer Ubuntu, pemeriksaan integritas, riwayat release, recovery, rollback, serta integrasi dengan panel web PW155.
+ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlisensi MIT dan menambahkan aplikasi desktop Windows, installer Ubuntu, layanan patch mandiri read-only, pemeriksaan integritas, riwayat release, recovery, dan rollback.
 
 ## Fungsi ASP CPW
 
@@ -13,7 +13,7 @@ ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlise
 - Mengunggah file yang berubah dari Windows ke patch server Ubuntu melalui SSH.
 - Menyimpan riwayat release dan memeriksa checksum sebelum release dipublikasikan.
 - Menyediakan pemeriksaan staging, recovery aman, verifikasi, dan rollback.
-- Menambahkan backup database manual dari Admin Panel yang dapat disimpan di VM/VPS dan diunduh ke PC admin.
+- Menyajikan file patch secara mandiri pada port TCP `8082`; ASP PWPanel tidak dibutuhkan.
 - Mencegah payload game, password, private key, dan release hasil generate masuk ke Git.
 
 ASP CPW **bukan** installer server game Perfect World dan tidak mengubah file client menjadi pasangan file server secara otomatis. File seperti `gshopsev.data`, `npcgen.data`, dan `domain.sev` harus dipasang melalui alur deployment server game.
@@ -23,7 +23,7 @@ ASP CPW **bukan** installer server game Perfect World dan tidak mengubah file cl
 - Windows 10 atau 11 dengan OpenSSH client `ssh.exe` dan `scp.exe`.
 - Server/VM Ubuntu PW yang dapat dihubungi melalui SSH.
 - Alamat Ubuntu, port SSH, dan username SSH.
-- URL patch publik, misalnya `http://127.0.0.1:8081/patch/` untuk pengujian lokal.
+- URL patch publik, misalnya `http://127.0.0.1:8082/patch/` untuk pengujian lokal.
 - Launcher dan patcher Perfect World yang kompatibel.
 - Salinan client game khusus untuk pengujian pertama.
 
@@ -89,12 +89,7 @@ Jangan menggunakan recovery sebelum memeriksa seluruh path pada staging server. 
 | `desktop/` | Source dan executable aplikasi desktop berdasarkan versi |
 | `tools/client-setup/` | Tool manual untuk menyiapkan client |
 | `tools/patch-publisher/` | Tool manual untuk preview dan menerbitkan patch |
-| `scripts/`, `systemd/` | Release manager dan worker Ubuntu |
-| `web-integration/` | Integrasi Patch Manager pada panel admin PW155 |
-
-Integrasi web opsional juga menyelaraskan layanan pesanan coin dan teleport
-aman milik ASP PWPanel. Pengiriman coin memerlukan persetujuan administrator
-dan akun harus offline; teleport memakai lokasi tetap yang diatur server.
+| `scripts/`, `systemd/` | Release manager, worker, dan layanan patch mandiri Ubuntu |
 | `vendor/cpw_pw/` | Source dan lisensi engine CPW upstream yang dipatok |
 
 ## Keamanan dan GitHub
@@ -104,6 +99,6 @@ dan akun harus offline; teleport memakai lokasi tetap yang diatur server.
 - Jalankan `CHECK-BEFORE-GITHUB.cmd` sebelum melakukan commit perubahan repositori.
 - Jangan menggunakan `git add -f` untuk melewati perlindungan yang tersedia.
 
-Setelah **Install / Update Server**, Admin Panel menyediakan bagian **Backup & download database**. Centang konfirmasi dan klik **Buat backup sekarang**, muat ulang halaman, lalu klik **Download** ketika arsip sudah siap. Backup server dipertahankan selama 14 hari; simpan salinan penting di perangkat admin.
+ASP CPW dan ASP PWPanel sengaja dibuat sebagai produk terpisah. Memasang atau memperbarui repositori ini tidak akan memasang, memperbarui, atau menghapus ASP PWPanel.
 
 Wrapper ASP dan dokumentasinya adalah bagian dari ASP Editor Studio. Engine `cpw_pw` tetap menggunakan lisensi MIT upstream yang tersimpan di [`LICENSES/cpw_pw-MIT.txt`](LICENSES/cpw_pw-MIT.txt).

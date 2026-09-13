@@ -4,7 +4,7 @@
 
 ASP CPW is a lightweight tool for creating, publishing, and managing **Perfect World game client updates**. It turns changed client files into versioned CPW revisions, publishes them to the Ubuntu patch server, and lets a compatible Perfect World launcher download the update.
 
-It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine and adds a Windows desktop workflow, Ubuntu installation, integrity verification, release history, recovery, rollback, and PW155 web-panel integration.
+It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine and adds a Windows desktop workflow, Ubuntu installation, a standalone read-only patch service, integrity verification, release history, recovery, and rollback.
 
 ## What ASP CPW does
 
@@ -13,7 +13,7 @@ It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine an
 - Uploads changed files from Windows to the Ubuntu patch server over SSH.
 - Keeps release history and verifies file checksums before a release becomes public.
 - Provides staging inspection, safe recovery, verification, and rollback.
-- Adds manual database backup in the Admin Panel, stored on the VM/VPS and downloadable to the administrator's PC.
+- Serves published patch files independently on TCP port `8082`; ASP PWPanel is not required.
 - Prevents game payloads, passwords, private keys, and generated releases from being committed to Git.
 
 ASP CPW does **not** install the Perfect World game server and does not automatically convert client files into their server-side equivalents. Files such as `gshopsev.data`, `npcgen.data`, and `domain.sev` must be deployed through the game-server deployment workflow.
@@ -23,7 +23,7 @@ ASP CPW does **not** install the Perfect World game server and does not automati
 - Windows 10 or 11 with the OpenSSH `ssh.exe` and `scp.exe` clients.
 - An Ubuntu PW server reachable through SSH.
 - The Ubuntu SSH address, port, and username.
-- A public patch URL, for example `http://127.0.0.1:8081/patch/` for local testing.
+- A public patch URL, for example `http://127.0.0.1:8082/patch/` for local testing.
 - A compatible Perfect World Launcher and patcher.
 - A separate copy of the game client for the first test.
 
@@ -89,12 +89,7 @@ Never use recovery without reviewing the remote staging paths first. More operat
 | `desktop/` | Desktop application source and versioned executable |
 | `tools/client-setup/` | Manual client-preparation tool |
 | `tools/patch-publisher/` | Manual preview and patch-publishing tools |
-| `scripts/`, `systemd/` | Ubuntu release manager and worker |
-| `web-integration/` | PW155 admin-panel Patch Manager integration |
-
-The optional web integration also keeps ASP PWPanel's player coin-order and
-safe-teleport services in sync. Coin delivery requires administrator approval
-and an offline account; safe teleport uses a fixed server-configured location.
+| `scripts/`, `systemd/` | Ubuntu release manager, worker, and standalone patch service |
 | `vendor/cpw_pw/` | Pinned upstream CPW source and license |
 
 ## Security and repository safety
@@ -104,6 +99,6 @@ and an offline account; safe teleport uses a fixed server-configured location.
 - Run `CHECK-BEFORE-GITHUB.cmd` before committing repository changes.
 - Do not use `git add -f` to bypass the included safeguards.
 
-After **Install / Update Server**, the Admin Panel provides a **Backup & download database** section. Confirm the action and click **Create backup now**, refresh the page, then click **Download** when the archive is ready. Server copies are retained for 14 days; keep important copies on the administrator's device.
+ASP CPW and ASP PWPanel are deliberately separate products. Installing or updating this repository never installs, updates, or removes ASP PWPanel.
 
 The ASP wrapper and documentation are part of ASP Editor Studio. The bundled `cpw_pw` engine retains its upstream MIT license in [`LICENSES/cpw_pw-MIT.txt`](LICENSES/cpw_pw-MIT.txt).

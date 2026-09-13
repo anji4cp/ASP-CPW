@@ -25,7 +25,7 @@ PWKU VM defaults:
 Address : 127.0.0.1
 SSH port: 2223
 Username: pwadmin
-Web     : http://127.0.0.1:8081/admin/patch
+Patch   : http://127.0.0.1:8082/patch/
 ```
 
 ## What belongs in each folder?
@@ -72,8 +72,7 @@ If it is abandoned test input, move it to a backup after inspection. Do not dele
 
 ## After publishing
 
-Open [Patch Manager](http://127.0.0.1:8081/admin/patch). Only channels containing files increase their versions.
-Use **Verify current release** for another integrity check.
+Select **Verify Release** in ASP CPW Desktop. Only channels containing files increase their versions.
 
 A publication rollback does not downgrade clients that already updated. Publish a corrective revision with a
 higher version for those clients.

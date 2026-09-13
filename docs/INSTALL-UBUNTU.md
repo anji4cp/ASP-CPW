@@ -68,12 +68,12 @@ pertama muncul, lalu masukkan password Ubuntu.
 6. Konfirmasi instalasi dengan Enter atau `Y`.
 7. Tunggu hingga muncul `Installation complete`.
 
-Installer aman dijalankan kembali untuk memperbaiki service atau integrasi web. Kunci RSA dan release yang sudah
+Installer aman dijalankan kembali untuk memperbaiki service ASP CPW. Kunci RSA dan release yang sudah
 ada tidak dibuat ulang; password akun database khusus CPW akan diperbarui bersama konfigurasi terlindungnya.
 
 Installer akan memasang MariaDB client/server bila belum ada, membuat database khusus `cpw_patch`,
-membuat kunci RSA, membuat baseline patch, memasang worker systemd, serta menghubungkan web PW155 bila
-`/opt/pw155-web` ditemukan.
+membuat kunci RSA, membuat baseline patch, serta memasang worker dan layanan HTTP mandiri ASP CPW.
+Installer ini tidak memasang atau memperbarui ASP PWPanel.
 
 ## 6. Verifikasi hasil
 
@@ -82,11 +82,12 @@ Jalankan melalui SSH:
 ```bash
 sudo asp-cpw-control status
 sudo systemctl status asp-cpw-control.path --no-pager
-sudo systemctl status pw155-web --no-pager
+sudo systemctl status asp-cpw-http --no-pager
+curl http://127.0.0.1:8082/health
 ```
 
-Kemudian login ke web sebagai admin dan buka **Admin Panel > Patch Manager**. Status harus `READY` dan
-release `baseline` harus terlihat.
+Perintah status harus menampilkan release `baseline`, layanan harus `active`, dan health endpoint harus
+menampilkan `ASP CPW patch service is online`.
 
 ## 7. Backup yang wajib
 

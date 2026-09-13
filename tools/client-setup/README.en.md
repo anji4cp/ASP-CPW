@@ -10,7 +10,8 @@ This tool prepares a base client to trust an ASP CPW Manager installation on Ubu
 - Embeds the active RSA public key using the server's CPW executable.
 - Downloads the results and verifies them against the active signed manifest.
 - Creates a backup before committing any client changes.
-- Sets the update URL, PID `101`, game server address, and baseline channel versions.
+- Sets the standalone update URL (default `http://127.0.0.1:8082/patch/`), PID `101`, game server address, and baseline channel versions.
+- Uses the standalone ASP CPW patch URL, defaulting to `http://127.0.0.1:8082/patch/`.
 - Removes obsolete `.sw` cache files only after validation succeeds.
 - Writes `updateserver.txt` and `serverlist.txt` as UTF-16 LE, as required by the stock launcher.
 

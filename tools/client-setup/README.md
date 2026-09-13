@@ -10,7 +10,7 @@ Tool ini menyiapkan base client agar mempercayai ASP CPW Manager yang sudah terp
 - Menanam public RSA key aktif menggunakan executable CPW di server.
 - Mengunduh hasil dan memverifikasinya terhadap signature manifest aktif.
 - Membuat backup file client sebelum perubahan diterapkan.
-- Mengatur URL update ke `http://127.0.0.1:8081/patch/`.
+- Mengatur URL update ke layanan mandiri ASP CPW, default `http://127.0.0.1:8082/patch/`.
 - Mengatur PID ke `101`.
 - Mengatur server game ke `127.0.0.1:29001`.
 - Mengatur versi awal element, launcher, dan patcher ke `1`.

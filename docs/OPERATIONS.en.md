@@ -39,8 +39,7 @@ From the CLI:
 sudo asp-cpw-control publish --actor pwadmin
 ```
 
-Alternatively, open **Admin Panel > Patch Manager**, enable the confirmation checkbox, and select
-**Publish staged update**.
+Alternatively, use **Preview & Publish** in ASP CPW Desktop and select **Publish Existing Staging (Recovery)** after reviewing every path.
 
 Before CPW runs, the manager saves a database dump and an output snapshot. After CPW finishes, it verifies every
 payload checksum and manifest signature, creates an immutable release, and atomically switches `current`.

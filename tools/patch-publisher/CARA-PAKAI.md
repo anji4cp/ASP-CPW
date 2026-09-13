@@ -25,7 +25,7 @@ Konfigurasi server default sudah sesuai VM PWKU:
 Address : 127.0.0.1
 SSH port: 2223
 Username: pwadmin
-Web     : http://127.0.0.1:8081/admin/patch
+Patch   : http://127.0.0.1:8082/patch/
 ```
 
 ## Apa yang diletakkan di setiap folder?
@@ -73,8 +73,7 @@ menghapusnya tanpa pemeriksaan.
 
 ## Setelah publish
 
-Buka [Patch Manager](http://127.0.0.1:8081/admin/patch). Hanya channel yang berisi file yang naik versinya.
-Gunakan tombol **Verify current release** untuk pemeriksaan ulang.
+Klik **Verify Release** pada ASP CPW Desktop. Hanya channel yang berisi file yang naik versinya.
 
 Rollback publik tidak menurunkan client yang sudah telanjur update. Untuk client tersebut, perbaiki file dan publish
 revision koreksi yang lebih tinggi.

@@ -61,7 +61,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.3.2";
+            Text = "ASP CPW Desktop Manager 0.4.0";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -266,8 +266,8 @@ namespace AspCpwDesktop
             docsId.Click += delegate { OpenFile(Path.Combine(repoRoot, "README.id.md")); };
             Button docsEn = ActionButton("Open English Guide", 242, 525, 190, Navy);
             docsEn.Click += delegate { OpenFile(Path.Combine(repoRoot, "README.md")); };
-            Button patchManager = ActionButton("Open Patch Manager", 526, 525, 210, Blue);
-            patchManager.Click += delegate { OpenUrl(GetAdminUrl()); };
+            Button patchManager = ActionButton("Open Patch Service", 526, 525, 210, Blue);
+            patchManager.Click += delegate { OpenUrl(settings.PatchUrl); };
             page.Controls.Add(docsId); page.Controls.Add(docsEn); page.Controls.Add(patchManager);
             return page;
         }
@@ -638,14 +638,6 @@ namespace AspCpwDesktop
         private static string AppendSeparator(string path)
         {
             return path.EndsWith(Path.DirectorySeparatorChar.ToString()) ? path : path + Path.DirectorySeparatorChar;
-        }
-
-        private string GetAdminUrl()
-        {
-            Uri uri;
-            if (Uri.TryCreate(settings.PatchUrl, UriKind.Absolute, out uri))
-                return uri.GetLeftPart(UriPartial.Authority) + "/admin/patch";
-            return "http://127.0.0.1:8081/admin/patch";
         }
 
         private void OpenFolder(string path) { Directory.CreateDirectory(path); Process.Start(new ProcessStartInfo(path) { UseShellExecute = true }); }

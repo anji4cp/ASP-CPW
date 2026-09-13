@@ -6,7 +6,7 @@
 
 ```bash
 sudo asp-cpw-control status
-sudo systemctl restart asp-cpw-control.path pw155-web
+sudo systemctl restart asp-cpw-control.path asp-cpw-http
 sudo ls -la /var/lib/asp-cpw-control
 ```
 
@@ -32,8 +32,8 @@ key baru ke kedua executable launcher.
 Tes URL dari Windows:
 
 ```powershell
-curl.exe http://127.0.0.1:8081/patch/info/pid
-curl.exe http://127.0.0.1:8081/patch/element/version
+curl.exe http://127.0.0.1:8082/patch/info/pid
+curl.exe http://127.0.0.1:8082/patch/element/version
 ```
 
 Periksa firewall, port forwarding VirtualBox, URL `updateserver.txt`, PID, versi `.sw`, dan kesesuaian RSA key.

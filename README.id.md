@@ -91,6 +91,10 @@ Jangan menggunakan recovery sebelum memeriksa seluruh path pada staging server. 
 | `tools/patch-publisher/` | Tool manual untuk preview dan menerbitkan patch |
 | `scripts/`, `systemd/` | Release manager dan worker Ubuntu |
 | `web-integration/` | Integrasi Patch Manager pada panel admin PW155 |
+
+Integrasi web opsional juga menyelaraskan layanan pesanan coin dan teleport
+aman milik ASP PWPanel. Pengiriman coin memerlukan persetujuan administrator
+dan akun harus offline; teleport memakai lokasi tetap yang diatur server.
 | `vendor/cpw_pw/` | Source dan lisensi engine CPW upstream yang dipatok |
 
 ## Keamanan dan GitHub

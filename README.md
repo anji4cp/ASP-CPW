@@ -91,6 +91,10 @@ Never use recovery without reviewing the remote staging paths first. More operat
 | `tools/patch-publisher/` | Manual preview and patch-publishing tools |
 | `scripts/`, `systemd/` | Ubuntu release manager and worker |
 | `web-integration/` | PW155 admin-panel Patch Manager integration |
+
+The optional web integration also keeps ASP PWPanel's player coin-order and
+safe-teleport services in sync. Coin delivery requires administrator approval
+and an offline account; safe teleport uses a fixed server-configured location.
 | `vendor/cpw_pw/` | Pinned upstream CPW source and license |
 
 ## Security and repository safety

@@ -67,7 +67,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.5.0";
+            Text = "ASP CPW Desktop Manager 0.5.1";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);

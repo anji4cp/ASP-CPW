@@ -50,8 +50,9 @@ Installer akan memasang paket Ubuntu yang diperlukan, termasuk MariaDB, Python 3
 ### Link website pada Launcher
 
 Buka **Launcher Links** di ASP CPW Desktop, lalu masukkan URL lengkap yang
-diawali `http://` atau `https://`. **News panel URL** akan tampil di kotak tengah
-Launcher; kolom lainnya mengatur tombol Register, Arc/Website, Support, dan
+diawali `http://` atau `https://`. Gunakan endpoint `/launcher-news` dari ASP
+PWPanel untuk **News panel URL** agar kompatibel dengan browser lama di kotak
+tengah Launcher; kolom lainnya mengatur tombol Register, Arc/Website, Support, dan
 Forum. Pilih **Apply to Selected Client** untuk client lama yang sudah disiapkan,
 atau jalankan **Prepare Client** agar link diterapkan bersama proses persiapan.
 Untuk pemain yang sudah memiliki Launcher, publish file

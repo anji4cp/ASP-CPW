@@ -14,7 +14,7 @@ namespace AspCpwDesktop
         public string PatchUrl = "http://127.0.0.1:8082/patch/";
         public string GameAddress = "127.0.0.1";
         public string GamePort = "29001";
-        public string NewsUrl = "http://127.0.0.1:8081/news";
+        public string NewsUrl = "http://127.0.0.1:8081/launcher-news";
         public string RegisterUrl = "http://127.0.0.1:8081/#register";
         public string HomeUrl = "http://127.0.0.1:8081/";
         public string SupportUrl = "http://127.0.0.1:8081/guide";
@@ -59,6 +59,8 @@ namespace AspCpwDesktop
                 if (entries.TryGetValue("HomeUrl", out item)) value.HomeUrl = item;
                 if (entries.TryGetValue("SupportUrl", out item)) value.SupportUrl = item;
                 if (entries.TryGetValue("ForumUrl", out item)) value.ForumUrl = item;
+                if (value.NewsUrl == "http://127.0.0.1:8081/news")
+                    value.NewsUrl = "http://127.0.0.1:8081/launcher-news";
                 if (entries.TryGetValue("ServerInstalled", out item)) value.ServerInstalled = item == "1";
                 if (entries.TryGetValue("ClientPrepared", out item)) value.ClientPrepared = item == "1";
             }

@@ -50,7 +50,8 @@ The installer installs the required Ubuntu packages, including MariaDB, Python 3
 ### Launcher website links
 
 Open **Launcher Links** in ASP CPW Desktop and enter absolute `http://` or
-`https://` URLs. **News panel URL** is shown inside the launcher's center box;
+`https://` URLs. Use ASP PWPanel's `/launcher-news` endpoint for **News panel URL**;
+it is shown inside the launcher's center box and supports the legacy browser;
 the other fields control the Register, Arc/Website, Support, and Forum buttons.
 Select **Apply to Selected Client** for an existing prepared client, or run
 **Prepare Client** to apply the links together with the normal preparation.

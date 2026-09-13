@@ -131,11 +131,14 @@ if [[ -d /opt/pw155-web && -d "${PACKAGE_DIR}/web-integration" ]]; then
   install -d -o root -g root -m 0700 /srv/pw155/backups/database
   install -m 0644 "${PACKAGE_DIR}/web-integration/app.py" /opt/pw155-web/app.py
   install -m 0644 "${PACKAGE_DIR}/web-integration/admin.html" /opt/pw155-web/admin.html
+  install -m 0644 "${PACKAGE_DIR}/web-integration/panel.html" /opt/pw155-web/panel.html
+  install -m 0755 "${PACKAGE_DIR}/web-integration/role_operations.py" /opt/pw155-web/role_operations.py
   install -m 0644 "${PACKAGE_DIR}/web-integration/patch_manager.html" /opt/pw155-web/patch_manager.html
   install -m 0644 "${PACKAGE_DIR}/web-integration/style.css" /opt/pw155-web/static/style.css
   install -m 0644 "${PACKAGE_DIR}/web-integration/app.js" /opt/pw155-web/static/app.js
   install -m 0755 "${PACKAGE_DIR}/web-integration/backup_control_worker.py" /opt/pw155-web/backup_control_worker.py
   install -m 0750 "${PACKAGE_DIR}/web-integration/pw155-backup-db.sh" /srv/pw155/tools/pw155-backup-db.sh
+  mariadb --batch < "${PACKAGE_DIR}/web-integration/player-services.sql"
   install -d -m 0755 /etc/systemd/system/pw155-web.service.d
   cat > /etc/systemd/system/pw155-web.service.d/asp-cpw.conf <<EOF
 [Service]

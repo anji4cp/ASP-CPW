@@ -14,6 +14,7 @@ ASP CPW menggunakan engine [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) berlise
 - Menyimpan riwayat release dan memeriksa checksum sebelum release dipublikasikan.
 - Menyediakan pemeriksaan staging, recovery aman, verifikasi, dan rollback.
 - Menyajikan file patch secara mandiri pada port TCP `8082`; ASP PWPanel tidak dibutuhkan.
+- Mengatur URL Register, Arc/Website, Support, Forum, dan panel News pada Launcher tanpa hex edit.
 - Mencegah payload game, password, private key, dan release hasil generate masuk ke Git.
 
 ASP CPW **bukan** installer server game Perfect World dan tidak mengubah file client menjadi pasangan file server secara otomatis. File seperti `gshopsev.data`, `npcgen.data`, dan `domain.sev` harus dipasang melalui alur deployment server game.
@@ -45,6 +46,16 @@ Installer akan memasang paket Ubuntu yang diperlukan, termasuk MariaDB, Python 3
 7. Simpan backup `/opt/asp-cpw/config/keys.json` di tempat aman. RSA private key tidak boleh diunggah ke GitHub.
 8. Klik **Prepare Client**, lalu pilih salinan client Perfect World untuk pengujian. Lakukan satu kali untuk setiap client. Ulangi hanya jika URL patch, executable, atau RSA key berubah.
 9. Jalankan Launcher yang telah disiapkan dan pastikan informasi patch server dapat dibaca.
+
+### Link website pada Launcher
+
+Buka **Launcher Links** di ASP CPW Desktop, lalu masukkan URL lengkap yang
+diawali `http://` atau `https://`. **News panel URL** akan tampil di kotak tengah
+Launcher; kolom lainnya mengatur tombol Register, Arc/Website, Support, dan
+Forum. Pilih **Apply to Selected Client** untuk client lama yang sudah disiapkan,
+atau jalankan **Prepare Client** agar link diterapkan bersama proses persiapan.
+Untuk pemain yang sudah memiliki Launcher, publish file
+`patcher/skin/mainuni.xml` melalui channel `patcher`.
 
 Untuk instalasi manual dan pengaturan VirtualBox, baca [instalasi Ubuntu](docs/INSTALL-UBUNTU.md) dan [persiapan client](docs/CLIENT-SETUP.md).
 

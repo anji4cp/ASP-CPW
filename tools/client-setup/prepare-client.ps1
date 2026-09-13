@@ -5,7 +5,12 @@ param(
   [string]$User = "",
   [string]$PatchUrl = "",
   [string]$GameAddress = "",
-  [string]$GamePort = ""
+  [string]$GamePort = "",
+  [string]$NewsUrl = "",
+  [string]$RegisterUrl = "",
+  [string]$HomeUrl = "",
+  [string]$SupportUrl = "",
+  [string]$ForumUrl = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -15,6 +20,7 @@ $KnownHostsSsh = $KnownHosts.Replace("\", "/")
 $Expected = @(
   "launcher\Launcher.exe",
   "patcher\patcher.exe",
+  "patcher\skin\mainuni.xml",
   "patcher\server\pid.ini",
   "patcher\server\updateserver.txt",
   "patcher\server\serverlist.txt"
@@ -113,6 +119,11 @@ $User = if ([string]::IsNullOrWhiteSpace($User)) { Read-Default "SSH username (n
 $PatchUrl = if ([string]::IsNullOrWhiteSpace($PatchUrl)) { Read-Default "Public patch URL" "http://127.0.0.1:8082/patch/" } else { $PatchUrl.Trim() }
 $GameAddress = if ([string]::IsNullOrWhiteSpace($GameAddress)) { Read-Default "Game address" "127.0.0.1" } else { $GameAddress.Trim() }
 $GamePortText = if ([string]::IsNullOrWhiteSpace($GamePort)) { Read-Default "Game port" "29001" } else { $GamePort.Trim() }
+$NewsUrl = if ([string]::IsNullOrWhiteSpace($NewsUrl)) { Read-Default "Launcher news URL" "http://127.0.0.1:8081/news" } else { $NewsUrl.Trim() }
+$RegisterUrl = if ([string]::IsNullOrWhiteSpace($RegisterUrl)) { Read-Default "Register URL" "http://127.0.0.1:8081/#register" } else { $RegisterUrl.Trim() }
+$HomeUrl = if ([string]::IsNullOrWhiteSpace($HomeUrl)) { Read-Default "Arc / website URL" "http://127.0.0.1:8081/" } else { $HomeUrl.Trim() }
+$SupportUrl = if ([string]::IsNullOrWhiteSpace($SupportUrl)) { Read-Default "Support URL" "http://127.0.0.1:8081/guide" } else { $SupportUrl.Trim() }
+$ForumUrl = if ([string]::IsNullOrWhiteSpace($ForumUrl)) { Read-Default "Forum URL" "https://www.arcgames.com/en/forums/pwi/" } else { $ForumUrl.Trim() }
 
 if ($PortText -notmatch '^[0-9]{1,5}$' -or [int]$PortText -lt 1 -or [int]$PortText -gt 65535) { throw "Invalid SSH port." }
 if ($GamePortText -notmatch '^[0-9]{1,5}$' -or [int]$GamePortText -lt 1 -or [int]$GamePortText -gt 65535) { throw "Invalid game port." }
@@ -128,6 +139,7 @@ $RemoteLauncher = "/tmp/asp-launcher-$Id.exe"
 $RemotePatcher = "/tmp/asp-patcher-$Id.exe"
 $LocalLauncher = Join-Path $Work "Launcher.exe"
 $LocalPatcher = Join-Path $Work "patcher.exe"
+$LocalMainUni = Join-Path $Work "mainuni.xml"
 $SshOptions = @(
   "-o", "ConnectTimeout=10",
   "-o", "ConnectionAttempts=1",
@@ -140,6 +152,11 @@ $SshOptions = @(
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
 Copy-Item -LiteralPath (Join-Path $ClientPath "launcher\Launcher.exe") -Destination $LocalLauncher
 Copy-Item -LiteralPath (Join-Path $ClientPath "patcher\patcher.exe") -Destination $LocalPatcher
+Copy-Item -LiteralPath (Join-Path $ClientPath "patcher\skin\mainuni.xml") -Destination $LocalMainUni
+
+& (Join-Path $SetupRoot "set-launcher-links.ps1") -MainUniPath $LocalMainUni `
+  -NewsUrl $NewsUrl -RegisterUrl $RegisterUrl -HomeUrl $HomeUrl `
+  -SupportUrl $SupportUrl -ForumUrl $ForumUrl -NoBackup
 
 try {
   Write-Host "Uploading executable copies..." -ForegroundColor Cyan
@@ -169,7 +186,7 @@ try {
   $BackupRoot = Join-Path $SetupRoot ("backups\" + (Get-Date -Format "yyyyMMdd-HHmmss"))
   New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null
   $backupFiles = @(
-    "launcher\Launcher.exe", "patcher\patcher.exe", "patcher\server\pid.ini",
+    "launcher\Launcher.exe", "patcher\patcher.exe", "patcher\skin\mainuni.xml", "patcher\server\pid.ini",
     "patcher\server\updateserver.txt", "patcher\server\serverlist.txt",
     "config\element\version.sw", "config\element\Listver.sw", "config\element\FullList.sw",
     "config\patcher\version.sw", "config\patcher\newver.sw"
@@ -185,6 +202,7 @@ try {
 
   Copy-Item -LiteralPath $LocalLauncher -Destination (Join-Path $ClientPath "launcher\Launcher.exe") -Force
   Copy-Item -LiteralPath $LocalPatcher -Destination (Join-Path $ClientPath "patcher\patcher.exe") -Force
+  Copy-Item -LiteralPath $LocalMainUni -Destination (Join-Path $ClientPath "patcher\skin\mainuni.xml") -Force
   [IO.File]::WriteAllText((Join-Path $ClientPath "patcher\server\pid.ini"), "[Version]`r`npid=101`r`n", [Text.Encoding]::ASCII)
   # The stock PW launcher expects these two lists as UTF-16 LE with a BOM.
   # ASCII/UTF-8 content looks correct in a text editor but produces empty lists.
@@ -199,7 +217,7 @@ try {
     if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path -Force }
   }
   Write-Host "Backup: $BackupRoot" -ForegroundColor Green
-  Write-Host "RSA signature, update URL, PID, game server, and baseline versions verified." -ForegroundColor Green
+  Write-Host "RSA signature, update URL, launcher links, PID, game server, and baseline versions verified." -ForegroundColor Green
 } finally {
   Remove-Item -LiteralPath $Work -Recurse -Force -ErrorAction SilentlyContinue
 }

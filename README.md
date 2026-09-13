@@ -14,6 +14,7 @@ It uses the MIT-licensed [`cpw_pw`](https://github.com/MrBIOSs/cpw_pw) engine an
 - Keeps release history and verifies file checksums before a release becomes public.
 - Provides staging inspection, safe recovery, verification, and rollback.
 - Serves published patch files independently on TCP port `8082`; ASP PWPanel is not required.
+- Configures the launcher's Register, Arc/Website, Support, Forum, and embedded News URLs without hex editing.
 - Prevents game payloads, passwords, private keys, and generated releases from being committed to Git.
 
 ASP CPW does **not** install the Perfect World game server and does not automatically convert client files into their server-side equivalents. Files such as `gshopsev.data`, `npcgen.data`, and `domain.sev` must be deployed through the game-server deployment workflow.
@@ -45,6 +46,16 @@ The installer installs the required Ubuntu packages, including MariaDB, Python 3
 7. Back up `/opt/asp-cpw/config/keys.json` securely. The RSA private key must not be uploaded to GitHub.
 8. Click **Prepare Client** and select a test copy of the Perfect World client. Do this once per client, or repeat it only after changing the patch URL, executable, or RSA key.
 9. Start the prepared launcher and confirm that it can read the patch-server information.
+
+### Launcher website links
+
+Open **Launcher Links** in ASP CPW Desktop and enter absolute `http://` or
+`https://` URLs. **News panel URL** is shown inside the launcher's center box;
+the other fields control the Register, Arc/Website, Support, and Forum buttons.
+Select **Apply to Selected Client** for an existing prepared client, or run
+**Prepare Client** to apply the links together with the normal preparation.
+For players who already have the launcher, publish
+`patcher/skin/mainuni.xml` through the `patcher` channel.
 
 For a manual installation and VirtualBox details, see [Ubuntu installation](docs/INSTALL-UBUNTU.en.md) and [client preparation](docs/CLIENT-SETUP.en.md).
 

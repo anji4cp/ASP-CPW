@@ -47,3 +47,12 @@ placeholder CPW yang kompatibel. Jangan paksa atau melakukan hex replacement man
 
 Catatan: RSA-1024 dan MD5withRSA adalah format lama yang dipertahankan untuk kompatibilitas launcher PW.
 Jangan mengganti algoritma sepihak tanpa mengubah dan menguji kode launcher.
+
+## Link website dan berita Launcher
+
+ASP CPW Desktop menyediakan tab **Launcher Links** untuk mengatur halaman
+berita di kotak tengah Launcher serta tombol Register, Arc/Website, Support,
+dan Forum. Pengaturan disimpan lokal tanpa password dan diterapkan ke
+`patcher/skin/mainuni.xml` dalam format UTF-16 LE aslinya. Tool membuat backup
+sebelum perubahan langsung. Publish file tersebut melalui channel `patcher`
+agar perubahan diterima client pemain yang sudah terpasang.

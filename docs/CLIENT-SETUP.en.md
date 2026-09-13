@@ -46,3 +46,12 @@ placeholder. Do not force a manual hex replacement.
 
 RSA-1024 with MD5withRSA is retained only for compatibility with the legacy PW launcher. Do not change the
 algorithm without changing and testing the launcher code as well.
+
+## Launcher website and news links
+
+The **Launcher Links** tab in ASP CPW Desktop configures the embedded News
+page and the Register, Arc/Website, Support, and Forum buttons. Settings are
+stored locally without passwords and written to `patcher/skin/mainuni.xml`
+while preserving its original UTF-16 LE format. A direct update creates a
+backup first. Publish this file through the `patcher` channel for existing
+player clients.

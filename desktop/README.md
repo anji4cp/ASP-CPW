@@ -6,6 +6,10 @@ A lightweight Windows application that brings CPW server installation, client pr
 selection, preview, publication, verification, and staging guidance into one place. It stores no passwords and
 ships no game data.
 
+The **Launcher Links** tab configures the stock launcher's News, Register,
+Arc/Website, Support, and Forum URLs by safely updating
+`patcher/skin/mainuni.xml`.
+
 **Ubuntu address**, **SSH port**, **SSH username**, **Public patch URL**, **Game address**, and **Game port** are
 passed automatically from Settings. The console asks only for action confirmation and passwords. Operations are
 blocked and the user is directed to Settings when connection values are empty or invalid.

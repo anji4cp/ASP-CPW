@@ -21,6 +21,7 @@ namespace AspCpwDesktop
             @"element\configs.pck",
             @"launcher\Launcher.exe",
             @"patcher\patcher.exe",
+            @"patcher\skin\mainuni.xml",
             @"patcher\server\updateserver.txt",
             @"patcher\server\serverlist.txt"
         };
@@ -47,6 +48,11 @@ namespace AspCpwDesktop
         private TextBox urlBox;
         private TextBox gameAddressBox;
         private TextBox gamePortBox;
+        private TextBox newsUrlBox;
+        private TextBox registerUrlBox;
+        private TextBox homeUrlBox;
+        private TextBox supportUrlBox;
+        private TextBox forumUrlBox;
         private ListBox activityLog;
         private TabControl mainTabs;
 
@@ -61,7 +67,7 @@ namespace AspCpwDesktop
             publishedRoot = Path.Combine(publisherRoot, "PUBLISHED");
             settings = AppSettings.Load();
 
-            Text = "ASP CPW Desktop Manager 0.4.0";
+            Text = "ASP CPW Desktop Manager 0.5.0";
             StartPosition = FormStartPosition.CenterScreen;
             MinimumSize = new Size(980, 680);
             Size = new Size(1120, 760);
@@ -93,6 +99,7 @@ namespace AspCpwDesktop
             mainTabs.TabPages.Add(BuildUpdateTab());
             mainTabs.TabPages.Add(BuildPublishTab());
             mainTabs.TabPages.Add(BuildSettingsTab());
+            mainTabs.TabPages.Add(BuildLauncherLinksTab());
             mainTabs.TabPages.Add(BuildHelpTab());
             Controls.Add(mainTabs);
             mainTabs.BringToFront();
@@ -272,6 +279,26 @@ namespace AspCpwDesktop
             return page;
         }
 
+        private TabPage BuildLauncherLinksTab()
+        {
+            TabPage page = NewTab("Launcher Links");
+            page.Controls.Add(Heading("Launcher website links", 16, 12));
+            page.Controls.Add(TextLabel("These URLs are written to patcher\\skin\\mainuni.xml. News appears in the launcher's center panel.", 17, 43, 940, Color.DimGray));
+            int y = 90;
+            newsUrlBox = SettingsField(page, "News panel URL", settings.NewsUrl, y); y += 58;
+            registerUrlBox = SettingsField(page, "Register URL", settings.RegisterUrl, y); y += 58;
+            homeUrlBox = SettingsField(page, "Arc / Website URL", settings.HomeUrl, y); y += 58;
+            supportUrlBox = SettingsField(page, "Support URL", settings.SupportUrl, y); y += 58;
+            forumUrlBox = SettingsField(page, "Forum URL", settings.ForumUrl, y); y += 72;
+            Button save = ActionButton("Save Link Settings", 194, y, 190, Green);
+            save.Click += SaveSettings;
+            Button apply = ActionButton("Apply to Selected Client", 400, y, 225, Blue);
+            apply.Click += delegate { ApplyLauncherLinks(); };
+            page.Controls.Add(save); page.Controls.Add(apply);
+            page.Controls.Add(TextLabel("For existing players, add patcher\\skin\\mainuni.xml to Create Update and publish it through the patcher channel.", 194, y + 55, 760, Color.FromArgb(165, 65, 35)));
+            return page;
+        }
+
         private void LoadSettingsIntoControls()
         {
             clientPathBox.Text = settings.ClientPath;
@@ -281,6 +308,11 @@ namespace AspCpwDesktop
             urlBox.Text = settings.PatchUrl;
             gameAddressBox.Text = settings.GameAddress;
             gamePortBox.Text = settings.GamePort;
+            newsUrlBox.Text = settings.NewsUrl;
+            registerUrlBox.Text = settings.RegisterUrl;
+            homeUrlBox.Text = settings.HomeUrl;
+            supportUrlBox.Text = settings.SupportUrl;
+            forumUrlBox.Text = settings.ForumUrl;
         }
 
         private void RefreshDashboard()
@@ -481,8 +513,28 @@ namespace AspCpwDesktop
             string arguments = "-ClientPath " + Quote(settings.ClientPath) +
                 " -Server " + Quote(settings.Server) + " -Port " + Quote(settings.Port) +
                 " -User " + Quote(settings.User) + " -PatchUrl " + Quote(settings.PatchUrl) +
-                " -GameAddress " + Quote(settings.GameAddress) + " -GamePort " + Quote(settings.GamePort);
+                " -GameAddress " + Quote(settings.GameAddress) + " -GamePort " + Quote(settings.GamePort) +
+                " -NewsUrl " + Quote(settings.NewsUrl) + " -RegisterUrl " + Quote(settings.RegisterUrl) +
+                " -HomeUrl " + Quote(settings.HomeUrl) + " -SupportUrl " + Quote(settings.SupportUrl) +
+                " -ForumUrl " + Quote(settings.ForumUrl);
             RunPowerShellScript(script, arguments, "Client preparation", false);
+        }
+
+        private void ApplyLauncherLinks()
+        {
+            if (!EnsureClientSelected() || !SaveSettingsInternal()) return;
+            string mainUni = Path.Combine(settings.ClientPath, "patcher", "skin", "mainuni.xml");
+            if (!File.Exists(mainUni))
+            {
+                MessageBox.Show(this, "Launcher skin file was not found:\r\n" + mainUni, "Missing mainuni.xml", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            string script = Path.Combine(repoRoot, "tools", "client-setup", "set-launcher-links.ps1");
+            string arguments = "-MainUniPath " + Quote(mainUni) +
+                " -NewsUrl " + Quote(settings.NewsUrl) + " -RegisterUrl " + Quote(settings.RegisterUrl) +
+                " -HomeUrl " + Quote(settings.HomeUrl) + " -SupportUrl " + Quote(settings.SupportUrl) +
+                " -ForumUrl " + Quote(settings.ForumUrl);
+            RunPowerShellScript(script, arguments, "Launcher link update", false);
         }
 
         private void StartPatchPublication()
@@ -581,21 +633,37 @@ namespace AspCpwDesktop
             string url = urlBox.Text.Trim();
             string gameAddress = gameAddressBox.Text.Trim();
             string gamePort = gamePortBox.Text.Trim();
+            string newsUrl = newsUrlBox.Text.Trim();
+            string registerUrl = registerUrlBox.Text.Trim();
+            string homeUrl = homeUrlBox.Text.Trim();
+            string supportUrl = supportUrlBox.Text.Trim();
+            string forumUrl = forumUrlBox.Text.Trim();
             int portNumber;
             int gamePortNumber;
             Uri uri;
+            Uri newsUri, registerUri, homeUri, supportUri, forumUri;
             if (!Regex.IsMatch(server, "^[A-Za-z0-9.-]+$") || !Int32.TryParse(port, out portNumber) || portNumber < 1 || portNumber > 65535 ||
                 !Regex.IsMatch(user, "^[a-z_][a-z0-9_-]{0,31}$") || !Uri.TryCreate(url, UriKind.Absolute, out uri) ||
-                !Regex.IsMatch(gameAddress, "^[A-Za-z0-9.-]+$") || !Int32.TryParse(gamePort, out gamePortNumber) || gamePortNumber < 1 || gamePortNumber > 65535)
+                !Regex.IsMatch(gameAddress, "^[A-Za-z0-9.-]+$") || !Int32.TryParse(gamePort, out gamePortNumber) || gamePortNumber < 1 || gamePortNumber > 65535 ||
+                !WebUri(newsUrl, out newsUri) || !WebUri(registerUrl, out registerUri) || !WebUri(homeUrl, out homeUri) ||
+                !WebUri(supportUrl, out supportUri) || !WebUri(forumUrl, out forumUri))
             {
-                MessageBox.Show(this, "Check the Ubuntu address, SSH port, username, patch URL, game address, and game port.", "Invalid settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "Check the connection values and all launcher URLs. URLs must begin with http:// or https://.", "Invalid settings", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return false;
             }
             settings.Server = server; settings.Port = port; settings.User = user; settings.PatchUrl = url;
             settings.GameAddress = gameAddress; settings.GamePort = gamePort;
+            settings.NewsUrl = newsUrl; settings.RegisterUrl = registerUrl; settings.HomeUrl = homeUrl;
+            settings.SupportUrl = supportUrl; settings.ForumUrl = forumUrl;
             settings.Save();
             Log("Connection settings saved.");
             return true;
+        }
+
+        private static bool WebUri(string value, out Uri uri)
+        {
+            if (!Uri.TryCreate(value, UriKind.Absolute, out uri)) return false;
+            return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
         }
 
         private bool EnsureClientSelected()

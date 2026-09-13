@@ -117,6 +117,9 @@ if [[ -d /opt/pw155-web && -d "${PACKAGE_DIR}/web-integration" ]]; then
   stamp="$(date -u +%Y%m%d-%H%M%S)"
   install -d -m 0750 "/srv/asp-cpw/backups/web-${stamp}"
   cp -a /opt/pw155-web/app.py /opt/pw155-web/admin.html /opt/pw155-web/static/style.css "/srv/asp-cpw/backups/web-${stamp}/"
+  if [[ -f /opt/pw155-web/static/app.js ]]; then
+    cp -a /opt/pw155-web/static/app.js "/srv/asp-cpw/backups/web-${stamp}/"
+  fi
   if ! getent group pwbackup >/dev/null 2>&1; then
     groupadd --system pwbackup
   fi
@@ -130,6 +133,7 @@ if [[ -d /opt/pw155-web && -d "${PACKAGE_DIR}/web-integration" ]]; then
   install -m 0644 "${PACKAGE_DIR}/web-integration/admin.html" /opt/pw155-web/admin.html
   install -m 0644 "${PACKAGE_DIR}/web-integration/patch_manager.html" /opt/pw155-web/patch_manager.html
   install -m 0644 "${PACKAGE_DIR}/web-integration/style.css" /opt/pw155-web/static/style.css
+  install -m 0644 "${PACKAGE_DIR}/web-integration/app.js" /opt/pw155-web/static/app.js
   install -m 0755 "${PACKAGE_DIR}/web-integration/backup_control_worker.py" /opt/pw155-web/backup_control_worker.py
   install -m 0750 "${PACKAGE_DIR}/web-integration/pw155-backup-db.sh" /srv/pw155/tools/pw155-backup-db.sh
   install -d -m 0755 /etc/systemd/system/pw155-web.service.d

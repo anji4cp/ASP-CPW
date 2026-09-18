@@ -108,9 +108,29 @@ if ($answer -cne "PREPARE") {
   exit 2
 }
 
-$running = @(Get-Process -Name "Launcher", "patcher", "elementclient" -ErrorAction SilentlyContinue)
+$running = @(Get-Process -Name "Launcher", "Launcher-core", "patcher", "patcher-core", "ASP-Launcher", "elementclient" -ErrorAction SilentlyContinue)
 if ($running.Count -gt 0) {
   throw "Close Launcher.exe, patcher.exe, and elementclient.exe before continuing."
+}
+
+# ASP Launcher keeps the original CPW executables beside its wrappers.  When
+# integration is already installed, prepare those originals in place instead
+# of trying to apply an RSA key to the small ASP wrapper executables.
+$LauncherRelative = "launcher\Launcher.exe"
+$PatcherRelative = "patcher\patcher.exe"
+$LauncherCurrent = Join-Path $ClientPath $LauncherRelative
+$PatcherCurrent = Join-Path $ClientPath $PatcherRelative
+if ((Get-Item -LiteralPath $LauncherCurrent).VersionInfo.ProductName -eq "ASP Launcher") {
+  $LauncherRelative = "launcher\Launcher-core.exe"
+  if (-not (Test-Path -LiteralPath (Join-Path $ClientPath $LauncherRelative) -PathType Leaf)) {
+    throw "ASP Launcher is installed, but launcher\Launcher-core.exe is missing."
+  }
+}
+if ((Get-Item -LiteralPath $PatcherCurrent).VersionInfo.ProductName -eq "ASP Launcher") {
+  $PatcherRelative = "patcher\patcher-core.exe"
+  if (-not (Test-Path -LiteralPath (Join-Path $ClientPath $PatcherRelative) -PathType Leaf)) {
+    throw "ASP Launcher is installed, but patcher\patcher-core.exe is missing."
+  }
 }
 
 $Server = if ([string]::IsNullOrWhiteSpace($Server)) { Read-Default "Ubuntu address" "127.0.0.1" } else { $Server.Trim() }
@@ -150,8 +170,8 @@ $SshOptions = @(
 )
 
 New-Item -ItemType Directory -Force -Path $Work | Out-Null
-Copy-Item -LiteralPath (Join-Path $ClientPath "launcher\Launcher.exe") -Destination $LocalLauncher
-Copy-Item -LiteralPath (Join-Path $ClientPath "patcher\patcher.exe") -Destination $LocalPatcher
+Copy-Item -LiteralPath (Join-Path $ClientPath $LauncherRelative) -Destination $LocalLauncher
+Copy-Item -LiteralPath (Join-Path $ClientPath $PatcherRelative) -Destination $LocalPatcher
 Copy-Item -LiteralPath (Join-Path $ClientPath "patcher\skin\mainuni.xml") -Destination $LocalMainUni
 
 & (Join-Path $SetupRoot "set-launcher-links.ps1") -MainUniPath $LocalMainUni `
@@ -186,7 +206,8 @@ try {
   $BackupRoot = Join-Path $SetupRoot ("backups\" + (Get-Date -Format "yyyyMMdd-HHmmss"))
   New-Item -ItemType Directory -Force -Path $BackupRoot | Out-Null
   $backupFiles = @(
-    "launcher\Launcher.exe", "patcher\patcher.exe", "patcher\skin\mainuni.xml", "patcher\server\pid.ini",
+    "launcher\Launcher.exe", "launcher\Launcher-core.exe",
+    "patcher\patcher.exe", "patcher\patcher-core.exe", "patcher\skin\mainuni.xml", "patcher\server\pid.ini",
     "patcher\server\updateserver.txt", "patcher\server\serverlist.txt",
     "config\element\version.sw", "config\element\Listver.sw", "config\element\FullList.sw",
     "config\patcher\version.sw", "config\patcher\newver.sw"
@@ -200,8 +221,8 @@ try {
     }
   }
 
-  Copy-Item -LiteralPath $LocalLauncher -Destination (Join-Path $ClientPath "launcher\Launcher.exe") -Force
-  Copy-Item -LiteralPath $LocalPatcher -Destination (Join-Path $ClientPath "patcher\patcher.exe") -Force
+  Copy-Item -LiteralPath $LocalLauncher -Destination (Join-Path $ClientPath $LauncherRelative) -Force
+  Copy-Item -LiteralPath $LocalPatcher -Destination (Join-Path $ClientPath $PatcherRelative) -Force
   Copy-Item -LiteralPath $LocalMainUni -Destination (Join-Path $ClientPath "patcher\skin\mainuni.xml") -Force
   [IO.File]::WriteAllText((Join-Path $ClientPath "patcher\server\pid.ini"), "[Version]`r`npid=101`r`n", [Text.Encoding]::ASCII)
   # The stock PW launcher expects these two lists as UTF-16 LE with a BOM.

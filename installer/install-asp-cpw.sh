@@ -43,7 +43,8 @@ echo "${CPW_SHA}  ${PACKAGE_DIR}/bin/linux-x64/cpw" | sha256sum --check --status
 if ! getent group aspcpw >/dev/null 2>&1; then
   groupadd --system aspcpw
 fi
-install -d -m 0750 /opt/asp-cpw /opt/asp-cpw/config /opt/asp-cpw/scripts /opt/asp-cpw/log
+install -d -m 0755 /opt/asp-cpw /opt/asp-cpw/scripts
+install -d -m 0750 /opt/asp-cpw/config /opt/asp-cpw/log
 install -d -m 0750 /etc/asp-cpw /srv/asp-cpw/work/new /srv/asp-cpw/work/CPW
 install -d -m 0750 /srv/asp-cpw/staging/{element,launcher,patcher} /srv/asp-cpw/releases /srv/asp-cpw/backups
 install -d -o root -g aspcpw -m 0750 /var/lib/asp-cpw-control
